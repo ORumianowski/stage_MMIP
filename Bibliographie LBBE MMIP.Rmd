@@ -1,0 +1,13 @@
+---
+title: "Bibliographie LBBE MMIP"
+author: "RUMIANOWSKI 0."
+date: "12/04/2022"
+output: html_document
+---
+
+### Epigemome & Profil de methylation
+
+Horvath, S., Raj, K., 2018. DNA methylation-based biomarkers and the epigenetic clock theory of ageing. Nat Rev Genet 19, 371–384. https://doi.org/10.1038/s41576-018-0004-3
+
+
+
