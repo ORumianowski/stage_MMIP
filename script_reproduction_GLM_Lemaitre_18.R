@@ -74,9 +74,59 @@ isSingular(reglmer)
 
 #creation X
 
-x = 33*(1.05)**(0:50) 
+x = 30*(1.05)**(0:50) 
+bornes = c(30, 260)
 
-bornes = c(33, 250)
+groupe = findInterval(x, bornes)
+X = x[groupe==1]
 
-groupe = findInterval(x, b)
 
+
+data_graph = select(data_JFM18, 
+                             survival6,  antler20, pop) %>% 
+  na.omit() 
+
+data_graph$group = NA
+
+data_graph = subset(data_graph, pop == "CH" ) 
+
+
+
+
+for ( i in 1:length(data_graph$antler20)){
+  
+  for (k in 1:(length(X)-1) ){
+    
+    if ( X[k] < data_graph$antler20[i] & data_graph$antler20[i] < X[k+1] ){
+      
+      data_graph$group[i] =  (X[k]+X[k+1]) /2
+    }
+  }
+}
+
+data_graph$survival6 = data_graph$survival6 %>% 
+  as.character() %>% 
+  as.numeric()
+
+group_count_alive <- aggregate(survival6 ~ group, data = data_graph, FUN=sum)
+group_effectif <-  aggregate(survival6 ~ group, data = data_graph, FUN=length)
+
+data_graph2 = tibble(group = group_count_alive$group,
+                     nb_alive = group_count_alive$survival6,
+                     effectif = group_effectif$survival6)
+
+data_graph2$proportion = data_graph2$nb_alive / data_graph2$effectif 
+
+
+graphe <- ggplot(data_graph2, aes(group,  proportion, size=effectif)) + 
+  geom_point() +
+  
+  labs(
+    title = "Chizé",
+    x= "Standardized antler length
+    20 months old (mm)",
+    y= "Survival to 6 years of age"
+  ) +
+  coord_trans(x="log2")
+
+print(graphe)
