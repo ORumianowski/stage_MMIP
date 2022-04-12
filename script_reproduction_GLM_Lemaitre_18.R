@@ -1,0 +1,88 @@
+rm(list = ls()) # nettoyage de l'environnement de travail
+
+
+# Chargement du jeu de données --------------------------------------------
+
+library(readxl) # pour charger les fichiers excel
+library(tidyr)
+library(tibble)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(lme4)
+
+data_JFM18 = read_excel("data/Dataset_JAE-201700618.xls", skip = 2, na = "NA") %>% 
+  rename(pop = `Population  (CH=Chizé / TF=Trois Fontaines)`,
+         survival6 = `Probability of surviving beyond 6 years of age (0= no / 1=yes)`,
+         mass20 = `Mass at 20 months (Kg)`,
+         antler20 = `Antlers length at 20 months of age(mm)- values standardized by the Julian date [see methods`,
+         cohort = Cohort) %>% 
+  mutate(survival6 = as.factor(survival6), 
+         mass20 = as.numeric(mass20),
+         antler20 = as.numeric(antler20),
+         pop = as.factor(pop))
+
+
+## Reproduction du GLM: surviving beyond 6 years ~ relative antler length + body mass 
+
+# sélection des colonnes nécessaires 
+
+data_antler20_survival6 = select(data_JFM18, 
+       survival6, mass20, antler20, cohort, pop) %>% 
+  mutate(cohort = as.factor(cohort))  %>% # Mise en facteur pour un potentiel effet mixte
+  mutate(antler20_log = log(antler20),
+         mass20_log = log(mass20))
+
+
+# problem NA --------------------------------------------------------------
+
+na.omit(data_antler20_survival6) %>% 
+  summary()
+
+
+# Regression --------------------------------------------------------------
+
+
+ 
+reglmer <- glmer(survival6 ~ antler20_log + mass20_log + pop + 
+                   antler20_log:pop + 
+                   (1 | cohort), 
+                 family= binomial, 
+                 data=data_antler20_survival6,
+                 control = glmerControl(optCtrl = list(maxfun = 1e5)))
+
+
+
+reg_glm =  glm(survival6 ~ antler20_log + mass20_log + pop + 
+                   antler20_log:pop, 
+                 family= binomial, 
+                 data= data_antler20_survival6)
+
+reg_glm %>% 
+  summary()
+
+reglmer %>% 
+  summary()
+
+isSingular(reglmer)
+
+
+
+# Graphiques associés -----------------------------------------------------
+
+
+
+#creation X
+
+x = 33*(1.05)**(0:50) 
+
+b = c(33, 250)
+
+c = findInterval(x, b)
+
+X = x[c==1]
+
+
+# creation Y
+
+y = 
