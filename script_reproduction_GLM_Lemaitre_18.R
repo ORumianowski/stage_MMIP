@@ -76,13 +76,7 @@ isSingular(reglmer)
 
 x = 33*(1.05)**(0:50) 
 
-b = c(33, 250)
+bornes = c(33, 250)
 
-c = findInterval(x, b)
+groupe = findInterval(x, b)
 
-X = x[c==1]
-
-
-# creation Y
-
-y = 
