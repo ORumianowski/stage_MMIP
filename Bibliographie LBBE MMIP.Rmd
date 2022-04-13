@@ -7,7 +7,79 @@ output: html_document
 
 ### Epigemome & Profil de methylation
 
-Horvath, S., Raj, K., 2018. DNA methylation-based biomarkers and the epigenetic clock theory of ageing. Nat Rev Genet 19, 371–384. https://doi.org/10.1038/s41576-018-0004-3
+#### Horvath, S., Raj, K., 2018. DNA methylation-based biomarkers and the epigenetic clock theory of ageing. Nat Rev Genet 19, 371–384. https://doi.org/10.1038/s41576-018-0004-3
+
+
+The advent of DNA methylation
+array technology enabled the identification of the
+specific genomic locations of these CpGs19,22,23,25–32.
+Epigenetic ‘age estimators’ are sets of CpGs (also known
+as ‘clock CpGs’) that are coupled with a mathematical algorithm to estimate the age (in units of years)
+of a DNA source, such as cells, tissues or organs.
+
+
+DNAm age estimators are typically built by regressing a transformed version of chronological age on a set
+of CpGs using a supervised machine learning method,
+for example, a penalized regression model, such as
+lasso (least absolute shrinkage and selection operator)
+or elastic net
+
+
+
+the DNam age of neurons (and other
+cells) probably reflects intracellular DNam changes that result from entropy, the failure
+of DNam maintenance and/or the actions of an epigenomic maintenance system.
+
+
+Numerous large-scale epidemiological studies
+have shown that telomere length has only a weak negative association with markers of biological age and life
+expectancy
+
+
+TERT alleles that are associated with longer telomeres are also associated with
+increased intrinsic epigenetic age acceleration in leukocytes89. 
+
+
+In general, cellular senescence and epigenetic ageing
+are distinct phenomena95. For example, cells induced
+to senesce by irradiation do not exhibit epigenetic ageing8,95. Conversely, TERT-immortalized cells, which
+do not undergo replicative senescence, continue to
+exhibit epigenetic ageing89,95. 
+
+Why, when and how these
+two different features of ageing can become entwined
+remain to be elucidated. It is possible that cellular senescence and epigenetic ageing might serve different but
+complementary roles when it comes to suppressing
+potential cancer development (for example, overexpression of oncogenes). 
+
+
+Whereas cellular senescence aims
+to inhibit cellular proliferation, epigenetic ageing might
+protect against dedifferentiation signals and epigenomic
+and/or genomic instability.
+
+
+
+The antagonistic pleiotropic effect of DNAm age is illustrated by its relation to gender:
+boys are epigenetically older than girls at a young age,
+possibly reflecting larger birthweight, and this sex difference persists to old age where it accompanies higher
+mortality risk.
+
+
+Phylogenetic and other
+comparative biological studies of epigenetic ageing
+rates across species promise to advance our understanding of the epigenetic determinants of maximum
+or median lifespan.
+
+The worm
+Caenorhabditis elegans lacks 5-methylcytosine, but other types of epigenetic modifications such as adenine
+methylation or histone modifications may lend themselves for developing epigenetic age estimators in this
+widely used model organism
+
+
+
+
+
 
 
 
