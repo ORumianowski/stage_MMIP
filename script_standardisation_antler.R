@@ -14,12 +14,8 @@ library(lme4)
 data_antler = read_excel("data/Dataset_JAE-201700618.xls", skip = 2, na = "NA") %>% 
   rename(antler20 = `Antlers length at 20 months of age(mm)- values standardized by the Julian date [see methods`) %>% 
   mutate(antler20 = as.numeric(antler20)) %>% 
-  select(antler20) %>% 
   na.omit()
-
-data_antler$day = data_antler$antler20 / 2 
-
-data_antler = select(data_antler, antler20, day) %>% 
+data_antler = select(data_antler, antler20, ) %>% 
   mutate(antler20_log = log(antler20))
 
 # Définition des fonctions de modélisation de la longueur des bois --------
@@ -49,12 +45,7 @@ one_slope = function(pars, x){
   b = pars[2]
   seuil = pars[3]
   
-  if (x<seuil){
-    a*x+b
-  }
-  else{
-    a*seuil+b
-  }
+  ifelse(x<seuil, a*x+b, a*seuil+b)
 } 
 
 # fonction de seuil avec deux pentes
@@ -65,14 +56,9 @@ two_slopes = function(pars, x){
   b = pars[2]
   seuil = pars[3]
   c = pars[4]
-  
+  OO_2 = (a - c) * seuil + b
 
-  if (x<seuil){
-    a*x+b
-  }
-  else{
-    c*x + (a*seuil+b)
-  }
+  ifelse(test = x<seuil, yes = a*x+b, no = c*x + OO_2)
 } 
 
 # fonction exponentielle
@@ -87,52 +73,35 @@ fonction_expo = function(pars,  x){
 
 
 
+
 # Sélection de la meilleure fonction --------------------------------------
 
 
-
-
-# determination des parametres et de l'AIC
-
-NLL = function(pars, data) {
-
-  pred = lineaire(pars, data$day)
-
-  -sum(dnorm(x = data$day, mean = pred, sd = pars[4], log = TRUE))
-
+NLL = function(pars, ma_fonction, y, x) {
+  # Values predicted by the model
+  sigma = pars[length(pars)]
+  parametres_moyenne = pars[-length(pars)] 
+  Gpred = ma_fonction(parametres_moyenne, x)
+  # Negative log-likelihood 
+  -sum(dnorm(x = y, mean = Gpred, sd = sigma, log = TRUE))
 }
 
+plan_experience = tibble(ma_fonction = c(lineaire, one_slope, two_slopes),
+       initial_pars = list(c(1, 0, 1), c(1, 0, 1, 1), c(1, 0, 0, 2, 1)))
 
-par0 = c(a = 1.0, b = 0.15, sd = 0.1)
-fit = optim(par = par0, fn = NLL, data = data_antler, control = list(parscale = abs(par0)),
-            hessian = TRUE)
-fit$par
-
-library("EstimationTools")
-#fit1 <- maxlogL(x = data_antler$antler20,  start=c(2, 3))
-
-
-# Fonction de standardisation ---------------------------------------------
-
-REF_DATE = 10
-
-standardised_antler = function(antler, day, fct_modele, ref_date=REF_DATE){
-  
-  fct_modele(ref_date) + antler - fct_modele(day)
-
+n = 1000
+x = abs(rnorm(n))
+y = two_slopes(c(1, 0, 1.5, 4), x) + rnorm(length(x), sd = .5)
+plot(x, y)
+get_AIC = function(initial_pars, ma_fonction){
+    neg_log_lik = optim(par = initial_pars, 
+          fn = function(p) NLL(p, 
+                               ma_fonction = ma_fonction, 
+                               y = y, 
+                               x = x),
+          hessian = TRUE)$value
+    2 * neg_log_lik + 2 * length(initial_pars)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+purrr::pmap_dbl(plan_experience,
+            get_AIC)
