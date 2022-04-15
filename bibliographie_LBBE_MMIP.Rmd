@@ -77,6 +77,50 @@ methylation or histone modifications may lend themselves for developing epigenet
 widely used model organism
 
 
+#### Lemaître, J., Rey, B., Gaillard, J., Régis, C., Gilot‐Fromont, E., Débias, F., Duhayer, J., Pardonnet, S., Pellerin, M., Haghani, A., Zoller, J.A., Li, C.Z., Horvath, S., 2022. DNA methylation as a tool to explore ageing in wild roe deer populations. Molecular Ecology Resources 22, 1002–1015. https://doi.org/10.1111/1755-0998.13533
+
+This discrepancy
+and the negative second order term of the quadratic model clearly
+indicate that the relationship between epigenetic and chronological ages is steeper in growing juveniles than in adults. A similar
+pattern has been reported in humans where the rate of change in
+DNA methylation profiles (also called “tick rate”) was higher during
+the developmental period than during adulthood, when a constant
+tick rate seems to be the rule (Horvath, 2013). The growth period
+is associated with a high rate of mitotic division and constitutes a
+particularly demanding life stage in terms of resource allocation in
+mammals (Reiss, 1989). Although overlooked for a while, the ageing
+consequences of a fast growth during early life are increasingly investigated (Metcalfe & Monaghan, 2003) and recent evidence suggests that fast growth can shorten lifespan in the long-run (Kraus
+et al., 2013; Lee et al., 2013
+
+
+. We found that the epigenetic
+acceleration increases with juvenile body mass, suggesting that individuals who allocate substantially in their growth are biologically
+older than their chronological age indicates, which might contribute
+to explain why, in roe deer, a fast-post-weaning growth is associated
+with a steeper rate of body mass senescence (Douhard et al., 2017).
+
+
+We have identified two CpGs with basal difference
+between sexes that also related to age roe deer (Figure 6c): NCAM1
+upstream, and POU3F3 exon (Figure 6d). The basal difference in
+these CpGs could underlie accelerated epigenetic ageing in males.
+For example, the loci in POU3F3 exon have higher baseline and
+ageing rate in males than females. POU3F3 (POU class 3 homeobox 3) is located on human chromosome 2 and involved in neuronal
+development.
+
+
+Our analyses of the sex-specific clock reveal that beyond
+7 years of age, females were consistently biologically younger than
+their chronological age when estimated with the male clock. This
+suggests that old female roe deer might show a lower degree of biological ageing than males. Yet, we detected no evidence that the epigenetic acceleration was higher in males than in females at any life
+stage, and further studies controlling for early-life events (growth
+trajectories, reproductive allocation) are now required
+
+* explication des interprétations des figures 5 à demander
+
+
+
+
 
 
 
