@@ -47,7 +47,7 @@ gg_miss_upset(data_antler_2)
 
 table(data_antler$Sex)
 table(data_antler$Population)
-table(data_antler$Sex, data_antler$Age)
+table(data_antler_2$AgeClass, data_antler_2$Population)
 
 table(data_antler$Id) 
 table(data_antler$Id) %>% 
@@ -108,7 +108,8 @@ ggplot(data_antler_2,
 
 ggplot(data_antler_2,
        aes(x = JulianCaptureDate  ,
-           y = Left_AntlerLength)) +
+           y = Left_AntlerLength,
+           color=AgeClass)) +
   geom_point()
 
 ggplot(data_antler,
@@ -123,3 +124,8 @@ reglmer <- lmer(AgeAccelLOOUCLA ~ Left_AntlerLength + JulianCaptureDate +WeightA
                   Left_AntlerLength:AgeClass + Left_AntlerLength:Population+
                    (1 | Cohort),  
                  data=data_antler_2)
+
+ggplot(data_antler) +
+  aes(x = Left_AntlerLength, y = JulianCaptureDate) +
+  geom_point()
+  

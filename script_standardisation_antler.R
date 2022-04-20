@@ -113,17 +113,10 @@ data_antler_2 = select(data_antler,
   subset( AgeClass != "(0,1]") %>% 
   na.omit()
 
-x_real = data_antler_2$JulianCaptureDate
-y_real = data_antler_2$AntlerLength
-
-
-ggplot(data_antler_2,
-       aes(x = JulianCaptureDate  ,
-           y = AntlerLength,
-           color=AntlerType)) +
-  geom_point()
-
-
+x_real = data_antler_2$JulianCaptureDate %>% 
+  log()
+y_real = data_antler_2$AntlerLength %>% 
+  log()
 
 ## Pbm de generalisation de la fonction get_AIC: mettre les x et y en arguments
 plan_experience = tibble(ma_fonction = c(constante, lineaire, one_slope, two_slopes),
@@ -154,8 +147,8 @@ optim_output = optim(par = c(0,1),
 optim_output$par 
 
 ggplot(data_antler_2,
-       aes(x = JulianCaptureDate  ,
-           y = AntlerLength,
+       aes(x = x_real  ,
+           y = y_real,
            color=AntlerType)) +
   geom_point()+
   
@@ -166,6 +159,8 @@ ggplot(data_antler_2,
 
 
 
+# Premiere classe d'age ---------------------------------------------------
+
 
 data_antler_2 = select(data_antler,
                        AntlerLength, JulianCaptureDate, AntlerType, AgeClass)%>%
@@ -173,16 +168,10 @@ data_antler_2 = select(data_antler,
   subset( AgeClass == "(0,1]") %>% 
   na.omit()
 
-x_real = data_antler_2$JulianCaptureDate
-y_real = data_antler_2$AntlerLength
-
-
-ggplot(data_antler_2,
-       aes(x = JulianCaptureDate  ,
-           y = AntlerLength,
-           color=AntlerType)) +
-  geom_point()
-
+x_real = data_antler_2$JulianCaptureDate %>% 
+  log()
+y_real = data_antler_2$AntlerLength %>% 
+  log()
 
 
 ## Pbm de generalisation de la fonction get_AIC: mettre les x et y en arguments
@@ -214,8 +203,8 @@ optim_output = optim(par = c(1,0,1),
 optim_output$par 
 
 ggplot(data_antler_2,
-       aes(x = JulianCaptureDate  ,
-           y = AntlerLength,
+       aes(x = x_real  ,
+           y = y_real,
            color=AntlerType)) +
   geom_point()+
   

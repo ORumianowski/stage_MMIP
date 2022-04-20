@@ -10,6 +10,7 @@ library(tibble)
 library(dplyr)
 library(purrr)
 library(ggplot2)
+library(stringr)
 library(lme4)
 library(lmerTest)
 
@@ -21,16 +22,22 @@ data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %
          PlateTelomere  = as.factor(PlateTelomere),
          DNAmAgeLOO = as.numeric(DNAmAgeLOO),
          `AgeAccelLOO(ComputedUCLA)` = as.numeric(`AgeAccelLOO(ComputedUCLA)`),
-         RightAntlerLength    = as.numeric(RightAntlerLength)) %>% 
-  rename(AgeAccelLOOUCLA =  `AgeAccelLOO(ComputedUCLA)`) 
-
-##pbm fusion des deux paragraphes
-
-data_antler = data_antler %>% 
-  mutate(AntlerLength = rowMeans(data_antler[,c('Left_AntlerLength', 'RightAntlerLength')], na.rm=TRUE)) %>% 
-  mutate(AgeClass = cut(c(data_antler[,"Age"])$Age, breaks = c(0,1,4,8,25))) %>% 
-  mutate(AgeClass = as.character(AgeClass)) %>% 
-  mutate(Age_2 = Age**2) 
+         RightAntlerLength    = str_remove(RightAntlerLength, "_broken") %>% 
+           as.numeric(),
+         AntlerLength = map2_dbl(.x = Left_AntlerLength, 
+                                 .y = RightAntlerLength,
+                                 .f = function(x, y){
+                                   if(is.na(x))
+                                     return(y)
+                                   else if(is.na(y))
+                                     return(x)
+                                   else
+                                     return(max(x, y))
+                                 }
+         ),
+         AgeClass = cut(Age, breaks = c(0,1,4,8,25)) %>% 
+           as.character(),
+         Age_2 = Age**2)
 
 
 
