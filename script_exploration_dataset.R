@@ -36,3 +36,18 @@ reglm2 <- lm(AgeAccelResiduals ~ AntlerLength+ AgeClass + Population+ WeightAnim
 reglm2 %>% 
   summary()
 
+
+
+ggplot(data_antler,
+       aes(x = InvessResiduals,
+           y = AgeAccelResiduals,
+           color=AgeClass)) +
+  geom_point()
+
+reglm3 <- lm(AgeAccelResiduals ~ InvessResiduals+Age +Age_2+ Population+
+               AntlerLength:Age +AntlerLength:Age_2 + AntlerLength:Population,  
+             data=data_antler)
+
+reglm3 %>% 
+  summary()
+

@@ -123,14 +123,3 @@ reglmer <- lmer(AgeAccelLOOUCLA ~ Left_AntlerLength + JulianCaptureDate +WeightA
                   Left_AntlerLength:AgeClass + Left_AntlerLength:Population+
                    (1 | Cohort),  
                  data=data_antler_2)
-
-reglmer %>% 
-  summary()
-
-reglm <- lm(AgeAccelLOOUCLA ~ Left_AntlerLength + AgeClass +
-                  Left_AntlerLength:AgeClass ,  
-                data=data_antler_2)
-
-reglm %>% 
-  summary()
-

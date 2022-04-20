@@ -85,7 +85,7 @@ plan_experience = tibble(ma_fonction = c(lineaire, one_slope, two_slopes),
 n = 1000
 x = abs(rnorm(n))
 y = lineaire(c(2, 5, 1), x) + rnorm(length(x), sd = .5)
-#plot(x, y)
+plot(x, y)
 
 get_AIC = function(initial_pars, ma_fonction){
     neg_log_lik = optim(par = initial_pars, 
@@ -104,52 +104,37 @@ purrr::pmap_dbl(plan_experience,
 
 # Application aux données réelles -----------------------------------------
 
-data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
-  mutate(PlateNumber = as.factor(PlateNumber), 
-         Batch_number = as.factor(Batch_number),
-         ProblemDNA_Concentration = as.factor(ProblemDNA_Concentration),
-         PlateTelomere  = as.factor(PlateTelomere),
-         DNAmAgeLOO = as.numeric(DNAmAgeLOO),
-         `AgeAccelLOO(ComputedUCLA)` = as.numeric(`AgeAccelLOO(ComputedUCLA)`),
-         RightAntlerLength    = as.numeric(RightAntlerLength)) %>% 
-  rename(AgeAccelLOOUCLA =  `AgeAccelLOO(ComputedUCLA)`)
+data_antler = read_excel("data/Dataset_v2.xlsx", skip = 0, na = "NA")
 
 
-data_antler_2 = select(data_antler, 
-                       Left_AntlerLength, RightAntlerLength, JulianCaptureDate, Age, AntlerType) %>% 
-  mutate(AntlerLength = rowMeans(data_antler[,c('Left_AntlerLength', 'RightAntlerLength')], na.rm=TRUE)) %>% 
-  mutate(AgeClass = cut(c(data_antler[,"Age"])$Age, breaks = c(0,1,4,8,25))) %>% 
-  mutate(AgeClass = as.character(AgeClass))
-
-data_antler_3 = data_antler_2 %>%
-  subset( AntlerType == "BV") %>% 
+data_antler_2 = select(data_antler,
+                       AntlerLength, JulianCaptureDate, AntlerType, AgeClass)%>%
+  #subset( AntlerType == "BV") %>% 
   subset( AgeClass != "(0,1]") %>% 
   na.omit()
 
-x_real = data_antler_3$JulianCaptureDate
-y_real = data_antler_3$AntlerLength
+x_real = data_antler_2$JulianCaptureDate
+y_real = data_antler_2$AntlerLength
 
-ggplot(data_antler_3,
+
+ggplot(data_antler_2,
        aes(x = JulianCaptureDate  ,
            y = AntlerLength,
            color=AntlerType)) +
-  geom_point()+
-  
-  geom_abline(slope=rate_GLMM1,
-              intercept=intercep_GLMM1,
-              colour="red")
+  geom_point()
+
 
 
 ## Pbm de generalisation de la fonction get_AIC: mettre les x et y en arguments
 plan_experience = tibble(ma_fonction = c(constante, lineaire, one_slope, two_slopes),
-                         initial_pars = list(c(1,1), c(1, 0, 1), c(1, 0, 1, 1), c(1, 0, 0, 2, 1)))
+                         initial_pars = list(c(0,1), c(1, 0, 1), c(1, 0, 1, 1), c(1, 0, 0, 2, 1)))
 
 get_AIC = function(initial_pars, ma_fonction){
   neg_log_lik = optim(par = initial_pars, 
                       fn = function(p) NLL(p, 
                                            ma_fonction = ma_fonction, 
-                                           y = x_real, 
-                                           x = y_real),
+                                           y = y_real, 
+                                           x = x_real),
                       hessian = TRUE)$value
   2 * neg_log_lik + 2 * length(initial_pars)
 }
@@ -159,16 +144,76 @@ purrr::pmap_dbl(plan_experience,
 
 
 
-optim_output = optim(par = c(3,0,10), 
+optim_output = optim(par = c(0,1), 
       fn = function(p) NLL(p, 
-                           ma_fonction = lineaire, 
-                           y = x, 
-                           x = y))
+                           ma_fonction = constante, 
+                           y = y_real, 
+                           x = x_real))
 
 
-optim_output$par #Valeur absurde?
+optim_output$par 
 
-ggplot(data_antler_3,
+ggplot(data_antler_2,
+       aes(x = JulianCaptureDate  ,
+           y = AntlerLength,
+           color=AntlerType)) +
+  geom_point()+
+  
+  geom_abline(slope=0,
+              intercept=optim_output$par[1],
+              colour="red")
+
+
+
+
+
+data_antler_2 = select(data_antler,
+                       AntlerLength, JulianCaptureDate, AntlerType, AgeClass)%>%
+  #subset( AntlerType == "BV") %>% 
+  subset( AgeClass == "(0,1]") %>% 
+  na.omit()
+
+x_real = data_antler_2$JulianCaptureDate
+y_real = data_antler_2$AntlerLength
+
+
+ggplot(data_antler_2,
+       aes(x = JulianCaptureDate  ,
+           y = AntlerLength,
+           color=AntlerType)) +
+  geom_point()
+
+
+
+## Pbm de generalisation de la fonction get_AIC: mettre les x et y en arguments
+plan_experience = tibble(ma_fonction = c(constante, lineaire, one_slope, two_slopes),
+                         initial_pars = list(c(0,1), c(1, 0, 1), c(1, 0, 1, 1), c(1, 0, 0, 2, 1)))
+
+get_AIC = function(initial_pars, ma_fonction){
+  neg_log_lik = optim(par = initial_pars, 
+                      fn = function(p) NLL(p, 
+                                           ma_fonction = ma_fonction, 
+                                           y = y_real, 
+                                           x = x_real),
+                      hessian = TRUE)$value
+  2 * neg_log_lik + 2 * length(initial_pars)
+}
+
+purrr::pmap_dbl(plan_experience,
+                get_AIC)
+
+
+
+optim_output = optim(par = c(1,0,1), 
+                     fn = function(p) NLL(p, 
+                                          ma_fonction = lineaire, 
+                                          y = y_real, 
+                                          x = x_real))
+
+
+optim_output$par 
+
+ggplot(data_antler_2,
        aes(x = JulianCaptureDate  ,
            y = AntlerLength,
            color=AntlerType)) +
