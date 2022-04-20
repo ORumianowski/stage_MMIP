@@ -3,7 +3,8 @@ rm(list = ls()) # nettoyage de l'environnement de travail
 
 # Chargement du jeu de données --------------------------------------------
 
-library(readxl) # pour charger les fichiers excel
+library(readxl)
+library(writexl)
 library(tidyr)
 library(tibble)
 library(dplyr)
@@ -21,43 +22,51 @@ data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %
          DNAmAgeLOO = as.numeric(DNAmAgeLOO),
          `AgeAccelLOO(ComputedUCLA)` = as.numeric(`AgeAccelLOO(ComputedUCLA)`),
          RightAntlerLength    = as.numeric(RightAntlerLength)) %>% 
-  rename(AgeAccelLOOUCLA =  `AgeAccelLOO(ComputedUCLA)`)
+  rename(AgeAccelLOOUCLA =  `AgeAccelLOO(ComputedUCLA)`) 
 
+##pbm fusion des deux paragraphes
 
-data_antler_2 = select(data_antler, DNAmAgeLOO, Age, AgeAccelLOOUCLA, Cohort, JulianCaptureDate ,WeightAnimal.kg, Population,  Left_AntlerLength, RightAntlerLength) %>% 
+data_antler = data_antler %>% 
   mutate(AntlerLength = rowMeans(data_antler[,c('Left_AntlerLength', 'RightAntlerLength')], na.rm=TRUE)) %>% 
   mutate(AgeClass = cut(c(data_antler[,"Age"])$Age, breaks = c(0,1,4,8,25))) %>% 
   mutate(AgeClass = as.character(AgeClass)) %>% 
-  mutate(Age_2 = Age**2) %>% 
-  na.omit()
-
-
-plot(data_antler_2$Age, data_antler_2$DNAmAgeLOO)
-
-regaccel = lm(DNAmAgeLOO ~ Age + Age_2, data_antler_2)
-
-reginvess = lm(AntlerLength ~ WeightAnimal.kg, data_antler_2)
+  mutate(Age_2 = Age**2) 
 
 
 
-data_antler_3 = data_antler_2 %>% 
-  mutate(AgeAccelResiduals = regaccel$residuals) %>% 
+# creation de la variable DNAm acceleration via les residus ---------------
+
+data_antler_accel = select(data_antler, 
+                           DNAmAgeLOO, Age, Age_2, Pop_Id, YearCapture) %>% 
+  na.omit
+
+regaccel = lm(DNAmAgeLOO ~ Age + Age_2, data_antler_accel)
+
+data_antler_accel = data_antler_accel %>% 
+  mutate(AgeAccelResiduals = regaccel$residuals)
+
+
+# creation de la variable investissement dans les bois via les res --------
+
+
+data_antler_invess = select(data_antler, 
+                           AntlerLength, WeightAnimal.kg, Pop_Id, YearCapture) %>% 
+  na.omit
+
+reginvess = lm(AntlerLength ~ WeightAnimal.kg, data_antler)
+
+data_antler_invess = data_antler_invess %>% 
   mutate(InvessResiduals = reginvess$residuals)
-  subset(Age>=1)
-
-plot(data_antler_3$AgeAccelResiduals, data_antler_3$AgeAccelLOOUCLA)
 
 
-ggplot(data_antler_3,
-       aes(x = InvessResiduals,
-           y = AgeAccelResiduals,
-           color=AgeClass)) +
-  geom_point()
+# creation dataset avec les variables tranformées -------------------------
 
-reglm <- lm(AgeAccelResiduals ~ InvessResiduals+ AgeClass + Population+
-                  InvessResiduals:AgeClass + InvessResiduals:Population,  
-                data=data_antler_3)
+data_antler_accel = data_antler_accel[, c("Pop_Id", "YearCapture", "AgeAccelResiduals")]
+data_antler_complet <-  merge(data_antler, data_antler_accel, by=c("Pop_Id", "YearCapture"), all.x = TRUE)
 
-reglm %>% 
-  summary()
-  
+data_antler_invess = data_antler_invess[, c("Pop_Id", "YearCapture", "InvessResiduals")]
+data_antler_complet <-  merge(data_antler_complet, data_antler_invess, by=c("Pop_Id", "YearCapture"), all.x = TRUE)
+
+
+write_xlsx(data_antler_complet,"data/Dataset_v2.xlsx")
+
