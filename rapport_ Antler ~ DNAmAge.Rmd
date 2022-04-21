@@ -22,6 +22,7 @@ library(naniar)
 library(UpSetR)
 library(corrplot)
 library(stringr)
+library(emmeans)
 
 ```
 
@@ -50,7 +51,8 @@ data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %
          ),
          AgeClass = cut(Age, breaks = c(0,1,4,8,25)) %>% 
            as.character(),
-         Age_2 = Age**2) %>% 
+         Age_2 = Age**2,
+         Age_log = log((Age))) %>% 
   rename(Year = YearCapture,
          Day = JulianCaptureDate,
          Cohort_Type = `Cohort_Quality_Type(Good/Bad)`,
@@ -61,7 +63,7 @@ data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %
          RTL = QC_RTL) %>% 
   select(Pop_Id, Year, Day, 
          Cohort, Cohort_Type, Population, 
-         Age, Age_2, AgeClass, Weight, AntlerLength, AntlerType,
+         Age, Age_2, Age_log, AgeClass, Weight, AntlerLength, AntlerType,
          RTL, DNAmAge, AgeAccelLOO, ProblemDNA)
 
 # Problem with the sample
@@ -267,12 +269,12 @@ ggplot(data_antler_2,
 
 
 data_antler_3 = mutate(data_antler_2,
-                       antler_std = exp(std_antler(
+                       Antler_std = exp(std_antler(
                          log(AntlerLength), Day, optim_output$par
                        )))
 
 
-data_antler_1C = data_antler_3[, c("Pop_Id", "Year", "antler_std")]
+data_antler_1C = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
 
 
 # Classes supérieures -----------------------------------------------------
@@ -315,10 +317,10 @@ ggplot(data_antler_2,
 
 
 data_antler_3 = mutate(data_antler_2,
-                       antler_std = AntlerLength)
+                       Antler_std = AntlerLength)
 
 
-data_antler_NC = data_antler_3[, c("Pop_Id", "Year", "antler_std")]
+data_antler_NC = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
 
 # Trois Fontaines ---------------------------------------------------------
 
@@ -360,12 +362,12 @@ ggplot(data_antler_2,
 
 
 data_antler_3 = mutate(data_antler_2,
-                       antler_std = exp(std_antler(
+                       Antler_std = exp(std_antler(
                          log(AntlerLength), Day, optim_output$par
                        )))
 
 
-data_antler_1TF = data_antler_3[, c("Pop_Id", "Year", "antler_std")]
+data_antler_1TF = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
 
 
 # Classes supérieures -----------------------------------------------------
@@ -407,11 +409,11 @@ ggplot(data_antler_2,
 
 
 data_antler_3 = mutate(data_antler_2,
-                       antler_std = exp(std_antler(
+                       Antler_std = exp(std_antler(
                          log(AntlerLength), Day, optim_output$par
                        )))
 
-data_antler_NTF = data_antler_3[, c("Pop_Id", "Year", "antler_std")]
+data_antler_NTF = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
 
 data_antler_std = rbind(data_antler_1C,
                         data_antler_NC,
@@ -426,15 +428,15 @@ data_antler_complet <-  merge(data_antler_used_std, data_antler_std, by=c("Pop_I
 for (k in 1:nrow(data_antler_complet)){
   if (!is.na(data_antler_complet[k, "AntlerType"])){
     if (data_antler_complet[k, "AntlerType"] == "BD"){
-      data_antler_complet[k, "antler_std"] = data_antler_complet[k, "AntlerLength"]
+      data_antler_complet[k, "Antler_std"] = data_antler_complet[k, "AntlerLength"]
     }
   }
   if (data_antler_complet[k, "AntlerLength"] <= 1){
-    data_antler_complet[k, "antler_std"] = data_antler_complet[k, "AntlerLength"]
+    data_antler_complet[k, "Antler_std"] = data_antler_complet[k, "AntlerLength"]
   }
 }
 
-data_antler_complet <- data_antler_complet[,c("Pop_Id", "Year", "antler_std")]
+data_antler_complet <- data_antler_complet[,c("Pop_Id", "Year", "Antler_std")]
 data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), all.x = TRUE)
 
 ```
@@ -445,23 +447,30 @@ data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), 
 # creation de la variable DNAm acceleration via les residus ---------------
 
 data_antler_accel = select(data_antler, 
-                           DNAmAge, Age, Age_2, Pop_Id, Year) %>% 
+                           DNAmAge, Age, Age_2, Age_log, Pop_Id, Year) %>% 
   na.omit
 
-regaccel = lm(DNAmAge ~ Age + Age_2, data_antler_accel)
+
+regaccel_Age_2 = lm(DNAmAge ~ Age + Age_2, data_antler_accel)
+
+regaccel_Age_log = lm(DNAmAge ~ Age + Age_log, data_antler_accel)
+
+plot(regaccel_Age_2, which = 1)
+plot(regaccel_Age_log, which = 1)
+
 
 data_antler_accel = data_antler_accel %>% 
-  mutate(AgeAccelResiduals = regaccel$residuals)
+  mutate(AgeAccelResiduals = regaccel_Age_log$residuals)
 
 
 # creation de la variable investissement dans les bois via les residus --------
 
 
 data_antler_invess = select(data_antler, 
-                           AntlerLength, Weight, Pop_Id, Year) %>% 
+                           Antler_std, Weight, Pop_Id, Year) %>% 
   na.omit
 
-reginvess = lm(AntlerLength ~ Weight, data_antler)
+reginvess = lm(Antler_std ~ Weight, data_antler)
 
 data_antler_invess = data_antler_invess %>% 
   mutate(InvessResiduals = reginvess$residuals)
@@ -479,5 +488,76 @@ data_antler <-  merge(data_antler_complet, data_antler_invess, by=c("Pop_Id", "Y
 
 
 ```{r, message=FALSE, warning=FALSE}
+ggplot(data_antler,
+       aes(x = Antler_std,
+           y = AgeAccelResiduals,
+           color=AgeClass)) +
+  geom_point()
+
+ggplot(data_antler,
+       aes(x = log(Antler_std),
+           y = AgeAccelResiduals,
+           color=AgeClass)) +
+  geom_point()
 
 ```
+```{r, message=FALSE, warning=FALSE}
+ggplot(data_antler,
+       aes(x = InvessResiduals,
+           y = AgeAccelResiduals,
+           color=AgeClass)) +
+  geom_point()
+
+ggplot(data_antler,
+       aes(x = log(InvessResiduals+100),
+           y = AgeAccelResiduals,
+           color=AgeClass)) +
+  geom_point()
+
+```
+```{r, message=FALSE, warning=FALSE}
+reg_lm1 <- lm(AgeAccelResiduals ~ Antler_std + Population + Weight + Cohort +
+                Antler_std:Population + Antler_std:Weight  ,  
+             data=data_antler)
+
+modele_lm1 <- step(reg_lm1)
+
+modele_lm1 %>% 
+  summary()
+
+car::Anova(modele_lm1)
+
+
+reg_lm2 <- lm(AgeAccelResiduals ~ InvessResiduals + Population + Cohort +
+                InvessResiduals:Population,  
+             data=data_antler)
+
+modele_lm2 <- step(reg_lm2)
+
+modele_lm2 %>% 
+  summary()
+
+car::Anova(modele_lm2)
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+
+
+```
+
