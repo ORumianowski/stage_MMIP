@@ -3,6 +3,7 @@ title: "Antler ~ DNAmAge"
 author: "RUMIANOWSKI 0."
 date: "21/04/2022"
 output: html_document
+encoding: UTF-8
 ---
 
 ```{r, message=FALSE, warning=FALSE}
@@ -78,6 +79,20 @@ data_antler = data_antler[-which(data_antler$Pop_Id=="TM3069" & data_antler$Year
 
 ```
 
+## Analyse de la relation entre la taille des bois et l'âge épigénétique: est-ce qu'une forte allocation vers les bois est associée à une accélération de l'âge épigénétique?
+
+
+"Several studies have revealed that the allocation to secondary sexual traits can be associated with diverse physiological costs (Garratt & Brooks, 2012). In the Australian painted dragon (Ctenophorus pictus), males that maintained a high level of head coloration suffered from a rapid rate of telomere loss (Giraudeau et al.,2016).This finding suggests that males with particularly conspicuous traits might have impaired fitness later in life. While current theories predict that males should suffer from long-term or delayed costs of growing costly sexual traits, such allocation can levy immediate fitness costs." - (Lemaître et al.,2018)
+
+##
+##
+
+
+
+
+
+
+
 
 ```{r, message=FALSE, warning=FALSE}
 vis_miss(data_antler)
@@ -93,9 +108,13 @@ ggplot(data_antler, aes(x=Age, color=Population)) +
 plot(data_antler[, c("Age","Weight", "AntlerLength",
          "RTL", "DNAmAge", "AgeAccelLOO")] , pch=20 , cex=1.5 , col="#69b3a2")
 
-
-
 ```
+
+### Standardisation de la longueur des bois à une date de référence
+
+Differentes fonctions ont été testées pour suivre au mieux la dynamique de croissance i.e. $ AntlerLength = f(JulianDate) $. La longueur des bois a été log-transformée. Quatre fonctions ont été testées: (i) constante, (ii) linéraire, (iii) une pente avec plateau et (iv) deux pentes.
+
+
 ```{r, message=FALSE, warning=FALSE}
 
 data_antler_used_std =select(data_antler, 
@@ -160,7 +179,11 @@ two_slopes = function(pars, x) {
          yes = a * x + b,
          no = c * x + OO_2)
 }
+```
 
+Les paramètres et l'AIC de chaque modèle ont été estimés par la méthode du maximum de vraisemblance. 
+
+```{r, message=FALSE, warning=FALSE}
 
 # Fonction d'optimisation par MV ------------------------------------------
 
@@ -225,7 +248,20 @@ optim_output = optim(
 )
 
 optim_output$par
+```
 
+
+Les modèles sont testés sur les données en discriminant selon la population d'origine et sinon la mesure a été ralisé sur un premère année ou non i.e. partionnement en quatre du jeu de données.
+
+Les mesures effectuées sur des individus ayant des bois secs ont été retirés de l'analyse. La mesure brute sera directement utilisée en tant mesure standard.
+
+Les mesures effectuées sur des individus ayant des bois inférieurs à 1cm ont été retirés de l'analyse. La mesure brute sera directement utilisée en tant mesure standard.
+
+Afin de conserver un maximum de données, les mesures de bois où l'état des bois est inconnu ont été prises en compte dans le processus de standardisation.
+
+L'anaylse des AIC et des graphes révèlent que le modèle linéaire est le plus adapté, excepté pour le groupe d'adulte provenant de Chizé où le meilleur modèle correspond à la fonction constante. Pour ce groupe, la mesure brute sera directement utilisée en tant mesure standard.
+
+```{r, message=FALSE, warning=FALSE}
 
 # Application aux données réelles -----------------------------------------
 
@@ -442,6 +478,13 @@ data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), 
 ```
 
 
+### Création d'indices d'accéléation de l'âge épigénétique et d'allocation vers la production de bois
+
+Les résidus d'un modèle linéaireliant le l'âge épigénétique avec une fonction de l'âge ont été utlisés pour obtenir un indice d'accéléation de l'âge épigénétique.
+
+Les résidus d'un modèle linéaireliant le la longueur des bois standardisés avec une fonction de la masse ont été utlisés pour obtenir un indice d'allocation vers la production de bois.
+
+
 ```{r, message=FALSE, warning=FALSE}
 
 # creation de la variable DNAm acceleration via les residus ---------------
@@ -486,6 +529,7 @@ data_antler <-  merge(data_antler_complet, data_antler_invess, by=c("Pop_Id", "Y
 
 ```
 
+### Exploration graphiques des relations entre l'accélération de l'âge épigénétique et la qualité de bois.
 
 ```{r, message=FALSE, warning=FALSE}
 ggplot(data_antler,
@@ -501,6 +545,7 @@ ggplot(data_antler,
   geom_point()
 
 ```
+
 ```{r, message=FALSE, warning=FALSE}
 ggplot(data_antler,
        aes(x = InvessResiduals,
@@ -515,6 +560,10 @@ ggplot(data_antler,
   geom_point()
 
 ```
+
+### Modèles linéaires préliminaires liant l'accélération de l'âge épigénétique et la qualité de bois.
+
+
 ```{r, message=FALSE, warning=FALSE}
 reg_lm1 <- lm(AgeAccelResiduals ~ Antler_std + Population + Weight + Cohort +
                 Antler_std:Population + Antler_std:Weight  ,  
