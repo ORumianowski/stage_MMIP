@@ -435,14 +435,49 @@ for (k in 1:nrow(data_antler_complet)){
 }
 
 data_antler_complet <- data_antler_complet[,c("Pop_Id", "Year", "antler_std")]
-data_antler_std <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), all.x = TRUE)
-
-data_antler_std
+data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), all.x = TRUE)
 
 ```
+
+
 ```{r, message=FALSE, warning=FALSE}
 
+# creation de la variable DNAm acceleration via les residus ---------------
+
+data_antler_accel = select(data_antler, 
+                           DNAmAge, Age, Age_2, Pop_Id, Year) %>% 
+  na.omit
+
+regaccel = lm(DNAmAge ~ Age + Age_2, data_antler_accel)
+
+data_antler_accel = data_antler_accel %>% 
+  mutate(AgeAccelResiduals = regaccel$residuals)
+
+
+# creation de la variable investissement dans les bois via les residus --------
+
+
+data_antler_invess = select(data_antler, 
+                           AntlerLength, Weight, Pop_Id, Year) %>% 
+  na.omit
+
+reginvess = lm(AntlerLength ~ Weight, data_antler)
+
+data_antler_invess = data_antler_invess %>% 
+  mutate(InvessResiduals = reginvess$residuals)
+
+
+# creation dataset avec les variables tranformées -------------------------
+
+data_antler_accel = data_antler_accel[, c("Pop_Id", "Year", "AgeAccelResiduals")]
+data_antler_complet <-  merge(data_antler, data_antler_accel, by=c("Pop_Id", "Year"), all.x = TRUE)
+
+data_antler_invess = data_antler_invess[, c("Pop_Id", "Year", "InvessResiduals")]
+data_antler <-  merge(data_antler_complet, data_antler_invess, by=c("Pop_Id", "Year"), all.x = TRUE)
+
 ```
+
+
 ```{r, message=FALSE, warning=FALSE}
 
 ```
