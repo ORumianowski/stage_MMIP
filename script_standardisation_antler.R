@@ -23,7 +23,7 @@ constante = function(pars, x){
 
 # fonction linéaire
 
-lineaire = function(pars, x){
+lineaire = function(pars, x=0){
   
   a = pars[1]
   b = pars[2]
@@ -63,6 +63,8 @@ fonction_expo = function(pars,  x){
   
   plateau * (1 - exp(-k*x))
 }
+
+
 
 
 
@@ -108,13 +110,12 @@ data_antler = read_excel("data/Dataset_v2.xlsx", skip = 0, na = "NA")
 
 
 data_antler_2 = select(data_antler,
-                       AntlerLength, JulianCaptureDate, AntlerType, AgeClass)%>%
+                       AntlerLength, JulianCaptureDate, AntlerType, AgeClass, Population)%>%
   #subset( AntlerType == "BV") %>% 
-  subset( AgeClass != "(0,1]") %>% 
+  subset( AgeClass != "(0,1]" & Population=="C") %>% 
   na.omit()
 
-x_real = data_antler_2$JulianCaptureDate %>% 
-  log()
+x_real = data_antler_2$JulianCaptureDate 
 y_real = data_antler_2$AntlerLength %>% 
   log()
 
@@ -149,7 +150,7 @@ optim_output$par
 ggplot(data_antler_2,
        aes(x = x_real  ,
            y = y_real,
-           color=AntlerType)) +
+           color=Population)) +
   geom_point()+
   
   geom_abline(slope=0,
@@ -162,17 +163,16 @@ ggplot(data_antler_2,
 # Premiere classe d'age ---------------------------------------------------
 
 
-data_antler_2 = select(data_antler,
-                       AntlerLength, JulianCaptureDate, AntlerType, AgeClass)%>%
+data_antler_2 = select(data_antler, QC_RTL,
+                       AntlerLength, JulianCaptureDate,Population, WeightAnimal.kg,
+                       AntlerType, AgeClass, AgeAccelResiduals)%>%
   #subset( AntlerType == "BV") %>% 
   subset( AgeClass == "(0,1]") %>% 
+  subset( AntlerLength > 10) %>% 
   na.omit()
 
-x_real = data_antler_2$JulianCaptureDate %>% 
-  log()
-y_real = data_antler_2$AntlerLength %>% 
-  log()
-
+x_real = data_antler_2$JulianCaptureDate 
+y_real = data_antler_2$AntlerLength 
 
 ## Pbm de generalisation de la fonction get_AIC: mettre les x et y en arguments
 plan_experience = tibble(ma_fonction = c(constante, lineaire, one_slope, two_slopes),
@@ -203,7 +203,7 @@ optim_output = optim(par = c(1,0,1),
 optim_output$par 
 
 ggplot(data_antler_2,
-       aes(x = x_real  ,
+       aes(x = x_real,
            y = y_real,
            color=AntlerType)) +
   geom_point()+
@@ -213,5 +213,45 @@ ggplot(data_antler_2,
               colour="red")
 
 
+reg2 = lm(y_real ~ x_real, data_antler_2)
+
+par(mfrow=c(2,2))
+plot(reg2)
+
+
+
+std_antler = function(antler_length, date, pars, date_ref=80){
+  a=pars[1]
+  b=pars[2]
+  (antler_length - (a*date+b))  + a*date_ref+b
+}
+
+data_antler_3 = mutate(data_antler_2, antler_std = std_antler(AntlerLength, JulianCaptureDate, optim_output$par))
+
+ggplot(data_antler_3,
+       aes(x = AntlerLength,
+           y = AgeAccelResiduals,
+           size=WeightAnimal.kg)) +
+  geom_point()
+
+
+ggplot(data_antler_3,
+       aes(x = antler_std,
+           y = AgeAccelResiduals,
+           size=WeightAnimal.kg)) +
+  geom_point()
+
+
+reglm3 = lm(AgeAccelResiduals ~ antler_std + WeightAnimal.kg+ Population+
+               antler_std:Population ,
+            data = data_antler_3)
+
+reglm3 %>% 
+  summary()
+
+modele <- step(reglm3)
+
+modele %>% 
+  summary()
 
 
