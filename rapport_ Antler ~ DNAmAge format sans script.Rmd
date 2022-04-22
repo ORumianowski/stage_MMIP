@@ -577,8 +577,10 @@ ggplot(data_antler,
 
 ### Modèles linéaires préliminaires liant l'accélération de l'âge épigénétique et la qualité de bois.
 
+#### Modèles linéaires avec la longueurs des bois standardisés
+
 ```{r, message=FALSE, warning=FALSE, echo = FALSE}
-reg_lm1 <- lm(AgeAccelResiduals ~ Antler_std + Population + Weight + Cohort +
+reg_lm1 <- lm(AgeAccelResiduals ~ Antler_std + Population + Weight + Cohort + Cohort_Type +
                 Antler_std:Population + Antler_std:Weight  ,  
              data=data_antler)
 
@@ -588,11 +590,47 @@ modele_lm1 %>%
   summary()
 
 car::Anova(modele_lm1)
+```
+
+#### Modèles linéaires avec l'indice d'allocation vers les bois issu des résidus 
 
 
-reg_lm2 <- lm(AgeAccelResiduals ~ InvessResiduals + Population + Cohort +
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+reg_lm2 <- lm(AgeAccelResiduals ~ InvessResiduals + Population + Cohort +  Cohort_Type +
                 InvessResiduals:Population,  
              data=data_antler)
+
+modele_lm2 <- step(reg_lm2)
+
+modele_lm2 %>% 
+  summary()
+
+car::Anova(modele_lm2)
+
+```
+#### Ces modèles appliqués uniquement aux premières années
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+data_antler_1A = subset(data_antler, Age<1)
+
+reg_lm1 <- lm(AgeAccelResiduals ~ Antler_std + Population + Weight + Cohort +
+                Antler_std:Population + Antler_std:Weight  ,  
+             data=data_antler_1A)
+
+modele_lm1 <- step(reg_lm1)
+
+modele_lm1 %>% 
+  summary()
+
+car::Anova(modele_lm1)
+
+
+reg_lm2 <- lm(AgeAccelResiduals ~ InvessResiduals + Population + Cohort + 
+                InvessResiduals:Population,  
+             data=data_antler_1A)
 
 modele_lm2 <- step(reg_lm2)
 
