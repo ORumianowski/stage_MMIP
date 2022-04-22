@@ -541,6 +541,9 @@ data_antler <-  merge(data_antler_complet, data_antler_invess, by=c("Pop_Id", "Y
 ```
 
 ### Exploration graphique des relations entre l'accélération de l'âge épigénétique et la qualité de bois.
+### Avec AgeAccelResiduals
+
+
 
 ```{r, message=FALSE, warning=FALSE, echo = FALSE}
 ggplot(data_antler,
@@ -640,3 +643,60 @@ modele_lm2 %>%
 car::Anova(modele_lm2)
 
 ```
+
+
+
+
+
+### Exploration graphique des relations entre l'accélération de l'âge épigénétique et la qualité de bois.
+### Avec AgeAccelLOO
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+ggplot(data_antler,
+       aes(x = Antler_std,
+           y = AgeAccelLOO,
+           color=AgeClass)) +
+  geom_point()+
+  labs( x = "Standardized antler length")
+
+ggplot(data_antler,
+       aes(x = log(Antler_std),
+           y = AgeAccelLOO,
+           color=AgeClass)) +
+  geom_point()+
+  labs( x = "Standardized antler length (log)") 
+
+```
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+ggplot(data_antler,
+       aes(x = InvessResiduals,
+           y = AgeAccelLOO,
+           color=AgeClass)) +
+  geom_point()
+
+ggplot(data_antler,
+       aes(x = log(InvessResiduals+100),
+           y = AgeAccelLOO,
+           color=AgeClass)) +
+  geom_point() +
+  coord_trans(x="log")
+
+```
+
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
+reg_lm1 <- lm(AgeAccelLOO ~ Antler_std + Population + Weight + Cohort + Cohort_Type +
+                Antler_std:Population + Antler_std:Weight  ,  
+             data=data_antler)
+
+modele_lm1 <- step(reg_lm1)
+
+modele_lm1 %>% 
+  summary()
+
+car::Anova(modele_lm1)
+```
+
