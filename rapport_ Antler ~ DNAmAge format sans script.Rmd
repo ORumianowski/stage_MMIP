@@ -269,7 +269,7 @@ Afin de conserver un maximum de données, les mesures de bois où l’état des 
 L'analyse des AIC et des graphes révèlent que le modèle linéaire est le plus adapté, excepté pour le groupe d'adultes provenant de Chizé où le meilleur modèle correspond à la fonction constante. Pour ce groupe, la mesure brute sera directement utilisée en tant que mesure standard.
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE, , fig.height=3, fig.width=4}
 
 # Application aux données réelles -----------------------------------------
 
@@ -306,7 +306,7 @@ ggplot(data_antler_2,
   geom_abline(slope = optim_output$par[1],
               intercept = optim_output$par[2],
               colour = "red")+
-  labs( title = "Chizé - Première classe d'âge",
+  labs( title = "Chizé - 1A",
         x= "Julian Capture Date",
         y= "Antler Length (log)")
 
@@ -353,7 +353,7 @@ ggplot(data_antler_2,
   geom_abline(slope = 0,
               intercept = optim_output$par[1],
               colour = "red")  +
-  labs( title = "Chizé - Classes d'âge supérieures",
+  labs( title = "Chizé - +1A",
         x= "Julian Capture Date",
         y= "Antler Length (log)")
 
@@ -397,7 +397,7 @@ ggplot(data_antler_2,
   geom_abline(slope = optim_output$par[1],
               intercept = optim_output$par[2],
               colour = "red")+
-  labs( title = "Trois-Fontaines - Première classe d'âge",
+  labs( title = "Trois-Fontaines - 1A",
         x= "Julian Capture Date",
         y= "Antler Length (log)")
 
@@ -443,7 +443,7 @@ ggplot(data_antler_2,
   geom_abline(slope = optim_output$par[1],
               intercept = optim_output$par[2],
               colour = "red")+
-  labs( title = "Trois-Fontaines - Classes d'âge supérieures",
+  labs( title = "Trois-Fontaines - +1A",
         x= "Julian Capture Date",
         y= "Antler Length (log)")
 
@@ -467,7 +467,7 @@ data_antler_complet <-  merge(data_antler_used_std, data_antler_std, by=c("Pop_I
 
 for (k in 1:nrow(data_antler_complet)){
   if (!is.na(data_antler_complet[k, "AntlerType"])){
-    if (data_antler_complet[k, "AntlerType"] == "BD"){
+    if (data_antler_complet[k, "AntlerType"] == "BD"){ 
       data_antler_complet[k, "Antler_std"] = data_antler_complet[k, "AntlerLength"]
     }
   }
@@ -489,7 +489,7 @@ Les résidus d’un modèle linéaire liant l’âge épigénétique avec une fo
 Les résidus d’un modèle linéaire liant la longueur des bois standardisées avec une fonction de la masse ont été utilisés pour obtenir un indice d’allocation vers la production de bois. La meilleure régression semble ne pas nécessiter de terme quadratique ou logarithmique.
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE, fig.height=3, fig.width=4}
 
 # creation de la variable DNAm acceleration via les residus ---------------
 
@@ -547,13 +547,15 @@ ggplot(data_antler,
        aes(x = Antler_std,
            y = AgeAccelResiduals,
            color=AgeClass)) +
-  geom_point()
+  geom_point()+
+  labs( x = "Standardized antler length")
 
 ggplot(data_antler,
        aes(x = log(Antler_std),
            y = AgeAccelResiduals,
            color=AgeClass)) +
-  geom_point()
+  geom_point()+
+  labs( x = "Standardized antler length (log)") 
 
 ```
 
@@ -568,7 +570,8 @@ ggplot(data_antler,
        aes(x = log(InvessResiduals+100),
            y = AgeAccelResiduals,
            color=AgeClass)) +
-  geom_point()
+  geom_point() +
+  coord_trans(x="log")
 
 ```
 
