@@ -6,7 +6,7 @@ output: html_document
 encoding: UTF-8
 ---
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 rm(list = ls()) # nettoyage de l'environnement de travail
 
 
@@ -24,12 +24,13 @@ library(UpSetR)
 library(corrplot)
 library(stringr)
 library(emmeans)
+library(cowplot)
 
 ```
 
 
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
   mutate(PlateNumber = as.factor(PlateNumber), 
          Batch_number = as.factor(Batch_number),
@@ -77,16 +78,17 @@ data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %
 "Several studies have revealed that the allocation to secondary sexual traits can be associated with diverse physiological costs (Garratt & Brooks, 2012). In the Australian painted dragon (Ctenophorus pictus), males that maintained a high level of head coloration suffered from a rapid rate of telomere loss (Giraudeau et al.,2016).This finding suggests that males with particularly conspicuous traits might have impaired fitness later in life. While current theories predict that males should suffer from long-term or delayed costs of growing costly sexual traits, such allocation can levy immediate fitness costs." - (Lemaître et al.,2018)
 
 
-Chez les Chevreuils, une forte allocation vers les bois en début de vie, avant même la phase de reproduction, affecte la survie future réduite (Lemaître et al.,2018). Pour ce taxon, il semble y avoir un compromis entre l'allocation vers les traits sexuels secondaires et la survie. Savoir si le cout de cette allocation vers les bois est un coût physiologique, qui explique cette perte de performance observé, reste à être déterminer.
+Chez les Chevreuils, une forte allocation vers les bois en début de vie, avant même la phase de reproduction, affecte la survie future (Lemaître et al.,2018). Pour ce taxon, il semble y avoir un compromis entre l’allocation vers les traits sexuels secondaires et la survie. Savoir si le coût de cette allocation vers les bois est un coût physiologique, qui explique cette perte de performance observée, reste à être déterminé.
 
-Une conséquence des coût de long-terme pourrait être un vieillissement accéléré. La longueur des télomères et l'âge épigénétique sont deux biomarqueurs du vieillissement et seront utilisé dans ce travail.
+Une conséquence des coûts de long-terme pourrait être un vieillissement accéléré. La longueur des télomères et l’âge épigénétique sont deux biomarqueurs du vieillissement et seront utilisés dans ce travail.
 
-Afin de déterminer si l'allocation vers les bois constitue un coût physiologique chez le Chevreuil, la relation entre la taille des bois et les biomarqueurs de vieillissement i.e. longueur des télomères et âge de méthylation, va être testé via une approche corrélative. Dans le cas d'une association positive entre l'allocation vers les bois et un biomarqueur du vieillissment, la production de bois constitura un coût physiologique pour les mâles de Chevreuils. Le cas contraire, une interprétation possible sera que les bois sont également un signal honnête de l'état physiologique de l'individu. Les mâles avec un bon état physiologique peuvent produire les bois de plus grandes tailles. 
-
-## Analyse de la relation entre la taille des bois et l'âge épigénétique: est-ce qu'une forte allocation vers les bois est associée à une accélération de l'âge épigénétique?
+Afin de déterminer si l’allocation vers les bois constitue un coût physiologique chez le Chevreuil, la relation entre la taille des bois et les biomarqueurs de vieillissement i.e. longueur des télomères et âge de méthylation, va être testé via une approche corrélative. Dans le cas d’une association positive entre l’allocation vers les bois et un biomarqueur du vieillissement, la production de bois semblera constituer un coût physiologique pour les mâles de Chevreuils. Dans le cas contraire, une interprétation possible serait que les bois sont un signal honnête de l’état physiologique de l’individu. Les mâles avec un bon état physiologique peuvent produire les bois de plus grandes tailles.
 
 
-```{r, message=FALSE, warning=FALSE}
+### Analyse de la relation entre la taille des bois et l'âge épigénétique: est-ce qu'une forte allocation vers les bois est associée à une accélération de l'âge épigénétique?
+
+
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 # Problem with the sample
 data_antler = data_antler[-which(data_antler$Pop_Id=="CM2301" & data_antler$Year=="2016") , ]
 # Problem with the sample (Female)
@@ -98,22 +100,21 @@ data_antler = data_antler[-which(data_antler$Pop_Id=="TM3069" & data_antler$Year
 
 ```
 
-Quatre individus ont été retirés du jeu de données pour toutes les analyses: deux données lié à une problème d'échantillon et deux donnnées où la mesure de la longueur des bois n'a été effectuée.
+Quatre individus ont été retirés du jeu de données pour toutes les analyses: deux données lié à une problème d’échantillon et deux données où la mesure de la longueur des bois n’a été effectuée.
 
+### Quelques graphes pour comprendre la structure des données
 
-## Quelques graphes pour comprendre la structure des données
-
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 vis_miss(data_antler)
 ```
 
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 ggplot(data_antler, aes(x=Age, color=Population)) +
   geom_histogram(fill="white")
 
 ```
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 plot(data_antler[, c("Age","Weight", "AntlerLength",
          "RTL", "DNAmAge", "AgeAccelLOO")] , pch=20 , cex=1.5 , col="#69b3a2")
 
@@ -121,10 +122,9 @@ plot(data_antler[, c("Age","Weight", "AntlerLength",
 
 ### Standardisation de la longueur des bois à une date de référence
 
-Differentes fonctions ont été testées pour suivre au mieux la dynamique de croissance i.e. $ AntlerLength = f(JulianDate) $. La longueur des bois a été log-transformée. Quatre fonctions ont été testées: (i) constante, (ii) linéraire, (iii) une pente avec plateau et (iv) deux pentes.
+Différentes fonctions ont été testées pour suivre au mieux la dynamique de croissance. La longueur des bois a été log-transformée. Quatre fonctions ont été testées: (i) constante, (ii) linéaire, (iii) une pente avec plateau et (iv) deux pentes.
 
-
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 
 data_antler_used_std =select(data_antler, 
     Pop_Id, 
@@ -190,9 +190,9 @@ two_slopes = function(pars, x) {
 }
 ```
 
-Les paramètres et l'AIC de chaque modèle ont été estimés par la méthode du maximum de vraisemblance. 
+Les paramètres et l’AIC de chaque modèle ont été estimés par la méthode du maximum de vraisemblance.
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 
 # Fonction d'optimisation par MV ------------------------------------------
 
@@ -242,8 +242,7 @@ get_AIC = function(initial_pars,
   2 * neg_log_lik + 2 * length(initial_pars)
 }
 
-purrr::pmap_dbl(plan_experience,
-                get_AIC)
+#purrr::pmap_dbl(plan_experience,get_AIC)
 
 optim_output = optim(
   par = c(1, 0, 1),
@@ -259,18 +258,18 @@ optim_output = optim(
 # optim_output$par
 ```
 
+Les modèles sont testés sur les données en discriminant selon la population d’origine et si la mesure a été réalisée sur un première année ou non i.e. partitionnement en quatre du jeu de données.
 
-Les modèles sont testés sur les données en discriminant selon la population d'origine et sinon la mesure a été ralisé sur un premère année ou non i.e. partionnement en quatre du jeu de données.
+Les mesures effectuées sur des individus ayant des bois secs ont été retirées de l’analyse. La mesure brute sera directement utilisée en tant que mesure standard.
 
-Les mesures effectuées sur des individus ayant des bois secs ont été retirés de l'analyse. La mesure brute sera directement utilisée en tant mesure standard.
+Les mesures effectuées sur des individus ayant des bois inférieurs à 1cm ont été retirées de l’analyse. La mesure brute sera directement utilisée en tant que mesure standard.
 
-Les mesures effectuées sur des individus ayant des bois inférieurs à 1cm ont été retirés de l'analyse. La mesure brute sera directement utilisée en tant mesure standard.
+Afin de conserver un maximum de données, les mesures de bois où l’état des bois est inconnu ont été prises en compte dans le processus de standardisation.
 
-Afin de conserver un maximum de données, les mesures de bois où l'état des bois est inconnu ont été prises en compte dans le processus de standardisation.
+L'analyse des AIC et des graphes révèlent que le modèle linéaire est le plus adapté, excepté pour le groupe d'adultes provenant de Chizé où le meilleur modèle correspond à la fonction constante. Pour ce groupe, la mesure brute sera directement utilisée en tant que mesure standard.
 
-L'anaylse des AIC et des graphes révèlent que le modèle linéaire est le plus adapté, excepté pour le groupe d'adulte provenant de Chizé où le meilleur modèle correspond à la fonction constante. Pour ce groupe, la mesure brute sera directement utilisée en tant mesure standard.
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 
 # Application aux données réelles -----------------------------------------
 
@@ -483,14 +482,14 @@ data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), 
 ```
 
 
-### Création d'indices d'accéléation de l'âge épigénétique et d'allocation vers la production de bois
+### Création d'indices d'accélération  de l'âge épigénétique et d'allocation vers la production de bois
 
-Les résidus d'un modèle linéaire liant le l'âge épigénétique avec une fonction de l'âge ont été utlisés pour obtenir un indice d'accéléation de l'âge épigénétique. La meilleur régression semble intégrer un terme en logarithme. 
+Les résidus d’un modèle linéaire liant l’âge épigénétique avec une fonction de l’âge ont été utilisés pour obtenir un indice d'accélération de l’âge épigénétique. La meilleure régression semble intégrer un terme en logarithme.
 
-Les résidus d'un modèle linéaire liant le la longueur des bois standardisés avec une fonction de la masse ont été utlisés pour obtenir un indice d'allocation vers la production de bois. La meilleur régression semble ne pas nécessiter de terme quadratique ou logarithmique.
+Les résidus d’un modèle linéaire liant la longueur des bois standardisées avec une fonction de la masse ont été utilisés pour obtenir un indice d’allocation vers la production de bois. La meilleure régression semble ne pas nécessiter de terme quadratique ou logarithmique.
 
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 
 # creation de la variable DNAm acceleration via les residus ---------------
 
@@ -541,9 +540,9 @@ data_antler <-  merge(data_antler_complet, data_antler_invess, by=c("Pop_Id", "Y
 
 ```
 
-### Exploration graphiques des relations entre l'accélération de l'âge épigénétique et la qualité de bois.
+### Exploration graphique des relations entre l'accélération de l'âge épigénétique et la qualité de bois.
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 ggplot(data_antler,
        aes(x = Antler_std,
            y = AgeAccelResiduals,
@@ -558,7 +557,7 @@ ggplot(data_antler,
 
 ```
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 ggplot(data_antler,
        aes(x = InvessResiduals,
            y = AgeAccelResiduals,
@@ -575,7 +574,7 @@ ggplot(data_antler,
 
 ### Modèles linéaires préliminaires liant l'accélération de l'âge épigénétique et la qualité de bois.
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 reg_lm1 <- lm(AgeAccelResiduals ~ Antler_std + Population + Weight + Cohort +
                 Antler_std:Population + Antler_std:Weight  ,  
              data=data_antler)
@@ -600,24 +599,3 @@ modele_lm2 %>%
 car::Anova(modele_lm2)
 
 ```
-
-```{r, message=FALSE, warning=FALSE}
-
-
-```
-
-```{r, message=FALSE, warning=FALSE}
-
-
-```
-
-```{r, message=FALSE, warning=FALSE}
-
-
-```
-
-```{r, message=FALSE, warning=FALSE}
-
-
-```
-
