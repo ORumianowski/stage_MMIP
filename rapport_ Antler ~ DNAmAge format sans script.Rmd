@@ -2,11 +2,24 @@
 title: "Antler ~ DNAmAge"
 author: "RUMIANOWSKI 0."
 date: "21/04/2022"
-output: html_document
+output: 
+  html_document:
+    theme: paper
+    toc: yes 
+    toc_float: yes
+    code_folding: hide
 encoding: UTF-8
+editor_options: 
+  chunk_output_type: console
 ---
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+```{r}
 rm(list = ls()) # nettoyage de l'environnement de travail
 
 
@@ -30,7 +43,7 @@ library(cowplot)
 
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
   mutate(PlateNumber = as.factor(PlateNumber), 
          Batch_number = as.factor(Batch_number),
@@ -54,7 +67,8 @@ data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %
          AgeClass = cut(Age, breaks = c(0,1,4,8,25)) %>% 
            as.character(),
          Age_2 = Age**2,
-         Age_log = log((Age))) %>% 
+         Age_log = log((Age)),
+         Cohort = factor(Cohort)) %>% 
   rename(Year = YearCapture,
          Day = JulianCaptureDate,
          Cohort_Type = `Cohort_Quality_Type(Good/Bad)`,
@@ -88,7 +102,7 @@ Afin de déterminer si l’allocation vers les bois constitue un coût physiolog
 ### Analyse de la relation entre la taille des bois et l'âge épigénétique: est-ce qu'une forte allocation vers les bois est associée à une accélération de l'âge épigénétique?
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 # Problem with the sample
 data_antler = data_antler[-which(data_antler$Pop_Id=="CM2301" & data_antler$Year=="2016") , ]
 # Problem with the sample (Female)
@@ -104,17 +118,17 @@ Quatre individus ont été retirés du jeu de données pour toutes les analyses:
 
 ### Quelques graphes pour comprendre la structure des données
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 vis_miss(data_antler)
 ```
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 ggplot(data_antler, aes(x=Age, color=Population)) +
   geom_histogram(fill="white")
 
 ```
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 plot(data_antler[, c("Age","Weight", "AntlerLength",
          "RTL", "DNAmAge", "AgeAccelLOO")] , pch=20 , cex=1.5 , col="#69b3a2")
 
@@ -124,7 +138,7 @@ plot(data_antler[, c("Age","Weight", "AntlerLength",
 
 Différentes fonctions ont été testées pour suivre au mieux la dynamique de croissance. La longueur des bois a été log-transformée. Quatre fonctions ont été testées: (i) constante, (ii) linéaire, (iii) une pente avec plateau et (iv) deux pentes.
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 
 data_antler_used_std =select(data_antler, 
     Pop_Id, 
@@ -192,7 +206,7 @@ two_slopes = function(pars, x) {
 
 Les paramètres et l’AIC de chaque modèle ont été estimés par la méthode du maximum de vraisemblance.
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 
 # Fonction d'optimisation par MV ------------------------------------------
 
@@ -269,7 +283,7 @@ Afin de conserver un maximum de données, les mesures de bois où l’état des 
 L'analyse des AIC et des graphes révèlent que le modèle linéaire est le plus adapté, excepté pour le groupe d'adultes provenant de Chizé où le meilleur modèle correspond à la fonction constante. Pour ce groupe, la mesure brute sera directement utilisée en tant que mesure standard.
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE, , fig.height=3, fig.width=4}
+```{r, , fig.height=3, fig.width=4, echo = FALSE}
 
 # Application aux données réelles -----------------------------------------
 
@@ -489,7 +503,7 @@ Les résidus d’un modèle linéaire liant l’âge épigénétique avec une fo
 Les résidus d’un modèle linéaire liant la longueur des bois standardisées avec une fonction de la masse ont été utilisés pour obtenir un indice d’allocation vers la production de bois. La meilleure régression semble ne pas nécessiter de terme quadratique ou logarithmique.
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE, fig.height=3, fig.width=4}
+```{r, fig.height=3, fig.width=4, echo = FALSE}
 
 # creation de la variable DNAm acceleration via les residus ---------------
 
@@ -545,7 +559,7 @@ data_antler <-  merge(data_antler_complet, data_antler_invess, by=c("Pop_Id", "Y
 
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 ggplot(data_antler,
        aes(x = Antler_std,
            y = AgeAccelResiduals,
@@ -562,7 +576,7 @@ ggplot(data_antler,
 
 ```
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 ggplot(data_antler,
        aes(x = InvessResiduals,
            y = AgeAccelResiduals,
@@ -582,7 +596,7 @@ ggplot(data_antler,
 
 #### Modèles linéaires avec la longueurs des bois standardisés
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 reg_lm1 <- lm(AgeAccelResiduals ~ Antler_std + Population + Weight + Cohort + Cohort_Type +
                 Antler_std:Population + Antler_std:Weight  ,  
              data=data_antler)
@@ -598,7 +612,7 @@ car::Anova(modele_lm1)
 #### Modèles linéaires avec l'indice d'allocation vers les bois issu des résidus 
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 
 reg_lm2 <- lm(AgeAccelResiduals ~ InvessResiduals + Population + Cohort +  Cohort_Type +
                 InvessResiduals:Population,  
@@ -612,10 +626,11 @@ modele_lm2 %>%
 car::Anova(modele_lm2)
 
 ```
+
 #### Ces modèles appliqués uniquement aux premières années
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 
 data_antler_1A = subset(data_antler, Age<1)
 
@@ -651,7 +666,7 @@ car::Anova(modele_lm2)
 ### Exploration graphique des relations entre l'accélération de l'âge épigénétique et la qualité de bois.
 ### Avec AgeAccelLOO
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 ggplot(data_antler,
        aes(x = Antler_std,
            y = AgeAccelLOO,
@@ -669,7 +684,7 @@ ggplot(data_antler,
 ```
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 ggplot(data_antler,
        aes(x = InvessResiduals,
            y = AgeAccelLOO,
@@ -687,7 +702,7 @@ ggplot(data_antler,
 
 
 
-```{r, message=FALSE, warning=FALSE, echo = FALSE}
+```{r}
 reg_lm1 <- lm(AgeAccelLOO ~ Antler_std + Population + Weight + Cohort + Cohort_Type +
                 Antler_std:Population + Antler_std:Weight  ,  
              data=data_antler)
@@ -698,5 +713,28 @@ modele_lm1 %>%
   summary()
 
 car::Anova(modele_lm1)
+```
+
+```{r}
+reg_lm2 <- lm(AgeAccelLOO ~ Antler_std + Population + Weight + Cohort_Type +
+                AgeClass + Antler_std:AgeClass +
+                Antler_std:Population + Antler_std:Weight,  
+             data=data_antler)
+
+modele_lm2 <- step(reg_lm2, trace = 0)
+
+modele_lm2 %>% 
+  summary()
+
+car::Anova(modele_lm2)
+```
+
+```{r}
+ggplot(data_antler,
+       aes(x = Antler_std,
+           y = AgeAccelLOO,
+           color=Cohort)) +
+  geom_point()+
+  labs( x = "Standardized antler length")
 ```
 
