@@ -1,3 +1,10 @@
+rm(list = ls()) # nettoyage de l'environnement de travail
+
+# Chargement du jeu de données --------------------------------------------
+
+source("utils_packages.R")
+
+
 data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
   mutate(PlateNumber = as.factor(PlateNumber), 
          Batch_number = as.factor(Batch_number),
@@ -29,10 +36,8 @@ data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %
          AgeAccelLOO = `AgeAccelLOO(ComputedUCLA)`,
          Weight = WeightAnimal.kg,
          ProblemDNA  = ProblemDNA_Concentration,
-         RTL = QC_RTL) %>% 
-  select(Pop_Id, Year, Day, 
-         Cohort, Cohort_Type, Population, 
-         Age, Age_2, Age_log, AgeClass, Weight, AntlerLength, AntlerType,
-         RTL, DNAmAge, AgeAccelLOO, ProblemDNA)%>% 
-  select(Age,  DNAmAge) %>% 
-  na.omit()
+         RTL = QC_RTL) 
+
+
+a = select(data_antler, Weight)
+  

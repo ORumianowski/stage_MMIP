@@ -5,6 +5,10 @@ rm(list = ls()) # nettoyage de l'environnement de travail
 source("utils_packages.R")
 source("script_pretraitement_data_antler.R")
 
+
+data_antler = select(data_antler, Age,  DNAmAge) %>% 
+  na.omit()
+
 # Definition de la fonction de cout pour n'importe quel predicteur
 
 cost_function <- function(parametre, predicteur){

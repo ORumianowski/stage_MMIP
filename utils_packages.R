@@ -1,5 +1,5 @@
 
-library(readxl) # pour charger les fichiers excel
+library(readxl) 
 library(tidyr)
 library(tibble)
 library(dplyr)
