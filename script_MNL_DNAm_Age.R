@@ -159,3 +159,12 @@ ggplot(cv_res, aes(x=method, y=performance, color=method)) +
   geom_jitter(shape=16, position=position_jitter(0.01))+ 
   ggtitle("Cross-validation \n evaluating models of DNAmAge")
 
+
+cv_res %>%
+  group_by(method) %>%
+  summarise(
+    max = max(performance, na.rm = TRUE),
+    min = min(performance, na.rm = TRUE),
+    mean = mean(performance, na.rm = TRUE)
+  )
+
