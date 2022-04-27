@@ -82,46 +82,31 @@ ggplot(data_antler,
 
 # raccourcissement télomérique --------------------------------------------
 
-data_antler_delta = tibble()
-
-data_antler_delta_1 = data_antler[, c("Pop_Id", "Year", "RTL")] %>% 
-  na.omit()
-
-for (id in unique(data_antler_delta_1$Pop_Id)){
-  
-  if (table(data_antler_delta_1$Pop_Id)[id]==2){
-    
-    data_antler_delta = rbind(data_antler_delta,
-                              data_antler_delta_1[data_antler_delta_1$Pop_Id==id, ] ) 
-    
-  }
-}
-
-
-data_antler_delta_3 = data_antler_delta[, c("Pop_Id")] %>% 
-  unique() %>% 
-  tibble()
-
-colnames(data_antler_delta_3) = c("Pop_Id")
-
-data_antler_delta_3$var_RTL = NA
-
-data_antler_delta_3$accel_DNAm = NA
-
-for (id in data_antler_delta_3$Pop_Id){
-  
-  data_antler_delta_3$accel_DNAm[data_antler_delta_3$Pop_Id==id] = 
-    as.numeric(data_antler[data_antler$Pop_Id==id & data_antler$Year==2016,"AgeAccelLOO"])
-    #sum(data_antler_delta_2[data_antler_delta_2$Pop_Id==id,"AgeAccelLOO"])/2
-  data_antler_delta_3$var_RTL[data_antler_delta_3$Pop_Id==id] = as.numeric(
-    data_antler[data_antler$Pop_Id==id & data_antler$Year==2017,"RTL"]-
-      data_antler[data_antler$Pop_Id==id & data_antler$Year==2016,"RTL"]
-  )
-}
+# On calcule la difference par Pop_Id
+# Comme on fait le même traitelent pour chacun, on utilisre group_by et group_map
+difference_telomere = dplyr::select(data_antler, Pop_Id, Year, RTL) %>% 
+  na.omit() %>% 
+  group_by(Pop_Id) %>% 
+  group_map(.f = function(tableau, groupe){
+    if(nrow(tableau) == 1){
+      return(NULL)
+    }
+    else
+      tibble(Difference = arrange(tableau, Year) %>% # On trie le tableau par annee
+               pull(RTL) %>%  # On extrait la colonne RTL
+               diff(),
+             Pop_Id = groupe$Pop_Id) %>% 
+      return() # On sort les différences
+  }) %>% 
+  bind_rows() %>% # Pour aggréger la liste de tableau
+  left_join(dplyr::select(filter(data_antler, Year == 2016), 
+                          Pop_Id, AgeAccelLOO))
 
 
-ggplot(data_antler_delta_3,
-       aes(x = accel_DNAm,
-           y = var_RTL)) +
+
+
+ggplot(difference_telomere,
+       aes(x = AgeAccelLOO,
+           y = Difference)) +
   geom_point()
 
