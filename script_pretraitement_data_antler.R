@@ -36,8 +36,11 @@ data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %
          AgeAccelLOO = `AgeAccelLOO(ComputedUCLA)`,
          Weight = WeightAnimal.kg,
          ProblemDNA  = ProblemDNA_Concentration,
-         RTL = QC_RTL) 
+         RTL = QC_RTL)
 
 
-a = select(data_antler, Weight)
-  
+data_antler = data_antler[,c("Pop_Id", "Year", "Day", "Cohort", "Cohort_Type", "Population",
+                             "DNAmAge", "AgeAccelLOO", "RTL",
+                             "ProblemDNA", 
+                             "Age", "AgeClass", "Age_2", "Age_log",
+                             "Weight",   "AntlerLength", "AntlerType") ]

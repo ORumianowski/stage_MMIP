@@ -3,38 +3,15 @@ rm(list = ls()) # nettoyage de l'environnement de travail
 
 # Chargement du jeu de données --------------------------------------------
 
-library(readxl) # pour charger les fichiers excel
-library(tidyr)
-library(tibble)
-library(dplyr)
-library(purrr)
-library(ggplot2)
-library(lme4)
-library(naniar)
-library(UpSetR)
-library(corrplot)
+source("utils_packages.R")
+source("script_pretraitement_data_antler.R")
 
-library(lmerTest)
-library(MuMIn)
+data_antler = data_antler[, c("AntlerLength", "Day", "Year", "Cohort", "Age", "Population",
+                              "Weight", "RTL", "DNAmAge", "AgeAccelLOO")]
 
-data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
-  mutate(PlateNumber = as.factor(PlateNumber), 
-         Batch_number = as.factor(Batch_number),
-         ProblemDNA_Concentration = as.factor(ProblemDNA_Concentration),
-         PlateTelomere  = as.factor(PlateTelomere),
-         DNAmAgeLOO = as.numeric(DNAmAgeLOO),
-         `AgeAccelLOO(ComputedUCLA)` = as.numeric(`AgeAccelLOO(ComputedUCLA)`),
-         RightAntlerLength    = as.numeric(RightAntlerLength)) %>% 
-  rename(AgeAccelLOOUCLA =  `AgeAccelLOO(ComputedUCLA)`)
+data_antler_2 = mutate(data_antler, Year   = as.factor(Year))  %>% 
+  mutate(Cohort  = as.factor(Cohort))  
 
-
-data_antler_2 = select(data_antler, 
-       Left_AntlerLength, JulianCaptureDate, YearCapture, Cohort, Age, Population,
-       WeightAnimal.kg, QC_RTL, DNAmAgeLOO, AgeAccelLOOUCLA) %>% 
-  mutate(YearCapture   = as.factor(YearCapture))  %>% 
-  mutate(Cohort  = as.factor(Cohort)) %>%    # Mise en facteur pour un potentiel effet mixte
-  mutate(AgeClass = cut(c(data_antler[,"Age"])$Age, breaks = c(0,1,4,8,25))) %>% 
-  mutate(AgeClass = as.character(AgeClass))
 
 # Analyse des NA ----------------------------------------------------------
 

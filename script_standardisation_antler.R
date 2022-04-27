@@ -15,14 +15,14 @@ data_antler = data_antler[-which(data_antler$Pop_Id=="CM2317" & data_antler$Year
 data_antler = data_antler[-which(data_antler$Pop_Id=="TM3069" & data_antler$Year=="2018") , ]
 
 
-data_antler_used_std =select(data_antler, 
-                             Pop_Id, 
-                             Year,
-                             Day,
-                             AntlerLength,
-                             AntlerType,
-                             AgeClass,
-                             Population) 
+data_antler_used_std =data_antler[,c("Pop_Id", 
+                                     "Year",
+                                     "Day",
+                                     "AntlerLength",
+                                     "AntlerType",
+                                     "AgeClass",
+                                     "Population")]
+                              
 
 
 # Fonctions de standardisation --------------------------------------------

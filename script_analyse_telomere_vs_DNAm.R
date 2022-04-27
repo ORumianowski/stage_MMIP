@@ -7,12 +7,13 @@ source("script_pretraitement_data_antler.R")
 source("script_standardisation_antler.R")
 source("script_determination_ageaccel.R")
 
-library(ppcor)
+
 
 # corrélation -------------------------------------------------------------
 
-data_antler_cor = select(data_antler, 
-                       RTL, DNAmAge,Age, Weight, Antler_std, InvessResiduals) %>% 
+library(ppcor)
+
+data_antler_cor = data_antler[,c("RTL", "DNAmAge","Age", "Weight", "Antler_std", "InvessResiduals")] %>% 
   na.omit()
 
 
@@ -30,8 +31,7 @@ corrplot(pcorrelation$estimate)
 
 ggplot(data_antler,
        aes(x = Age,
-           y = RTL,
-           color=AgeClass)) +
+           y = RTL)) +
   geom_point()
 
 ggplot(data_antler,
@@ -84,42 +84,44 @@ ggplot(data_antler,
 
 data_antler_delta = tibble()
 
-for (id in unique(data_antler$Pop_Id)){
+data_antler_delta_1 = data_antler[, c("Pop_Id", "Year", "RTL")] %>% 
+  na.omit()
+
+for (id in unique(data_antler_delta_1$Pop_Id)){
   
-  if (table(data_antler$Pop_Id)[id]==2){
+  if (table(data_antler_delta_1$Pop_Id)[id]==2){
     
     data_antler_delta = rbind(data_antler_delta,
-                              data_antler[data_antler$Pop_Id==id, ] ) 
+                              data_antler_delta_1[data_antler_delta_1$Pop_Id==id, ] ) 
     
   }
 }
 
-data_antler_delta_2 = data_antler_delta[, c("Pop_Id", "Year", "RTL", "AgeAccelLOO")]
 
-data_antler_delta_3 = data_antler_delta[, "Pop_Id"] %>% 
+data_antler_delta_3 = data_antler_delta[, c("Pop_Id")] %>% 
   unique() %>% 
-  tibble
+  tibble()
 
-data_antler_delta_3$var = NA
+colnames(data_antler_delta_3) = c("Pop_Id")
 
-data_antler_delta_3$accel_moy = NA
+data_antler_delta_3$var_RTL = NA
+
+data_antler_delta_3$accel_DNAm = NA
 
 for (id in data_antler_delta_3$Pop_Id){
   
-  data_antler_delta_3$accel_moy[data_antler_delta_3$Pop_Id==id] = 
-    as.numeric(data_antler_delta_2[data_antler_delta_2$Pop_Id==id & data_antler_delta_2$Year==2016,"AgeAccelLOO"])
+  data_antler_delta_3$accel_DNAm[data_antler_delta_3$Pop_Id==id] = 
+    as.numeric(data_antler[data_antler$Pop_Id==id & data_antler$Year==2016,"AgeAccelLOO"])
     #sum(data_antler_delta_2[data_antler_delta_2$Pop_Id==id,"AgeAccelLOO"])/2
-  data_antler_delta_3$var[data_antler_delta_3$Pop_Id==id] = as.numeric(
-    data_antler_delta_2[data_antler_delta_2$Pop_Id==id & data_antler_delta_2$Year==2017,"RTL"]-
-    data_antler_delta_2[data_antler_delta_2$Pop_Id==id & data_antler_delta_2$Year==2016,"RTL"]
+  data_antler_delta_3$var_RTL[data_antler_delta_3$Pop_Id==id] = as.numeric(
+    data_antler[data_antler$Pop_Id==id & data_antler$Year==2017,"RTL"]-
+      data_antler[data_antler$Pop_Id==id & data_antler$Year==2016,"RTL"]
   )
-  
-  
-  }
-
-data_antler_delta_4 = data_antler_delta_3[, c("var", "accel_moy")] %>% 
-  na.omit()
+}
 
 
-plot(data_antler_delta_4)
+ggplot(data_antler_delta_3,
+       aes(x = accel_DNAm,
+           y = var_RTL)) +
+  geom_point()
 

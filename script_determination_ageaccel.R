@@ -6,17 +6,13 @@ source("utils_packages.R")
 source("script_pretraitement_data_antler.R")
 source("script_standardisation_antler.R")
 
-data_antler_accel = select(data_antler, 
-                           DNAmAge, Age, Age_2, Age_log, Pop_Id, Year) %>% 
+data_antler_accel = data_antler[,c("DNAmAge", "Age", "Age_2", "Age_log", "Pop_Id", "Year")] %>% 
   na.omit
 
 regaccel = lm(DNAmAge ~ Age, data_antler_accel)
 regaccel_Age_2 = lm(DNAmAge ~ Age + Age_2, data_antler_accel)
 regaccel_Age_log = lm(DNAmAge ~ Age + Age_log, data_antler_accel)
 
-plot(regaccel, which = 1)
-plot(regaccel_Age_2, which = 1)
-plot(regaccel_Age_log, which = 1)
 
 
 data_antler_accel = data_antler_accel %>% 
@@ -26,8 +22,7 @@ data_antler_accel = data_antler_accel %>%
 # creation de la variable investissement dans les bois via les residus --------
 
 
-data_antler_invess = select(data_antler, 
-                            Antler_std, Weight, Pop_Id, Year) %>% 
+data_antler_invess = data_antler[,c("Antler_std", "Weight", "Pop_Id", "Year")]%>% 
   na.omit %>% 
   mutate(Weight2 = Weight**2)
 
