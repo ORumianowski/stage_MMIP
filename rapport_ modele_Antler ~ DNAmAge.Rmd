@@ -77,7 +77,7 @@ data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %
          Weight = WeightAnimal.kg,
          ProblemDNA  = ProblemDNA_Concentration,
          RTL = QC_RTL) %>% 
-  select(Pop_Id, Year, Day, 
+  dplyr::select(Pop_Id, Year, Day, 
          Cohort, Cohort_Type, Population, 
          Age, Age_2, Age_log, AgeClass, Weight, AntlerLength, AntlerType,
          RTL, DNAmAge, AgeAccelLOO, ProblemDNA)
@@ -105,7 +105,7 @@ vis_miss(data_antler)
 
 ```{r}
 
-data_antler_used_std =select(data_antler, 
+data_antler_used_std =dplyr::select(data_antler, 
     Pop_Id, 
     Year,
     Day,
@@ -407,7 +407,7 @@ data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), 
 
 # creation de la variable DNAm acceleration via les residus ---------------
 
-data_antler_accel = select(data_antler, 
+data_antler_accel = dplyr::select(data_antler, 
                            DNAmAge, Age, Age_2, Age_log, Pop_Id, Year) %>% 
   na.omit
 
@@ -422,7 +422,7 @@ data_antler_accel = data_antler_accel %>%
 # creation de la variable investissement dans les bois via les residus --------
 
 
-data_antler_invess = select(data_antler, 
+data_antler_invess = dplyr::select(data_antler, 
                            Antler_std, Weight, Pop_Id, Year) %>% 
   na.omit %>% 
   mutate(Weight2 = Weight**2)
@@ -465,7 +465,7 @@ ggplot(data_antler,
 
 ```{r}
 
-data_antler_complet = select(data_antler, 
+data_antler_complet = dplyr::select(data_antler, 
                      Pop_Id, Year, Day, 
                      Cohort, Cohort_Type, Population, 
                      Age, Age_2, Age_log, AgeClass,
@@ -501,7 +501,7 @@ plot(ms_full, labAsExpr = TRUE)
 
 ```{r}
 
-data_antler_1A = select(data_antler, 
+data_antler_1A = dplyr::select(data_antler, 
                              Pop_Id, Year, Day, 
                              Cohort, Cohort_Type, Population, 
                              Age, Age_2, Age_log, AgeClass,
@@ -530,5 +530,60 @@ head(ms1A)
 par(mar = c(3,5,6,4))
 plot(ms1A, labAsExpr = TRUE)
 
+```
+```{r}
+
+library("FactoMineR")
+
+
+library("tidyr")
+library("dplyr")
+library("readr")
+library("ggplot2")
+library("knitr")
+library("FactoMineR")
+library("factoextra")
+library("corrplot")
+library("ppcor")
+library("gridExtra")
+library("cowplot")
+library("missMDA")
+library("car")
+library("cowplot")
+
+data_antler_ACP = dplyr::select(data_antler, 
+                             Weight,
+                             Antler_std) %>% 
+  na.omit()
+
+resPCA <- PCA(data_antler_ACP, scale.unit = TRUE, ncp = 6, graph = FALSE)
+
+
+
+get_eigenvalue(resPCA)
+
+fviz_eig(resPCA, addlabels = TRUE, ylim= c(0,50))
+
+
+fviz_pca_var(resPCA, geom = c("text", "arrow"), col.var = "cos2", axes = 1:2) + theme_classic()
+
+data_antler = mutate(data_antler, 
+                     taille_acp = resPCA$ind$coord[,1])
+
+
+reg_glmm <- lm(AgeAccelResiduals ~ taille_acp,  
+                    data=data_antler)
+
+reg_glmm %>% 
+  summary()
+
+
+```
+```{r}
+ggplot(data_antler,
+       aes(x = taille_acp,
+           y = AgeAccelResiduals,
+           color=AgeClass)) +
+  geom_point()
 ```
 

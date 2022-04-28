@@ -56,6 +56,19 @@ predicteur_Horvath = function(parametre, Age){
   
 }
 
+
+# Prédicteur Quadratic ------------------------------------------------------
+
+predicteur_Quadratic = function(parametre, Age){
+  
+  alpha = parametre[1]
+  beta <- parametre[2]
+  adult.age <- parametre[3]
+  
+  
+  alpha * Age + beta * Age**2
+}
+
 # Representation graphique ------------------------------------------------
 
 optimization_function = function(mon_predicteur, nb_par, nb_replicates = 10){
@@ -90,6 +103,10 @@ ggplot(data_antler) +
   stat_function(aes(color = "Affine"), 
                 fun = predicteur_affine, 
                 args = list(parametre  = optimization_function(predicteur_affine, 
+                                                               nb_par = 2))) + 
+  stat_function(aes(color = "Quadratic"), 
+                fun = predicteur_Quadratic, 
+                args = list(parametre  = optimization_function(predicteur_Quadratic, 
                                                                nb_par = 2))) 
 
 
@@ -97,14 +114,14 @@ ggplot(data_antler) +
 
 # Critere de choix --------------------------------------------------------
 
-cost_function(parametre = optim(optimization_function(predicteur_affine,nb_par = 3), 
+cost_function(parametre = optim(optimization_function(predicteur_Horvath,nb_par = 3), 
                                 predicteur = predicteur_Horvath, 
                                 cost_function, 
                                 method = "Nelder-Mead")$par,
               predicteur = predicteur_Horvath,
               my_data = data_antler)
 
-cost_function(parametre = optim(optimization_function(predicteur_affine,nb_par = 2), 
+cost_function(parametre = optim(optimization_function(predicteur_log,nb_par = 2), 
                                 predicteur = predicteur_log,
                                 cost_function, 
                                 method = "Nelder-Mead")$par,
@@ -118,6 +135,13 @@ cost_function(parametre = optim(optimization_function(predicteur_affine,nb_par =
               predicteur = predicteur_affine,
               my_data = data_antler)
 
+cost_function(parametre = optim(optimization_function(predicteur_Quadratic,nb_par = 2), 
+                                predicteur = predicteur_Quadratic, 
+                                cost_function, 
+                                method = "Nelder-Mead")$par,
+              predicteur = predicteur_Quadratic,
+              my_data = data_antler)
+
 # cross-validation --------------------------------------------------------
 
 cv_function = function(my_prop = 0.7, nb_replicates = 10){
@@ -128,26 +152,44 @@ cv_function = function(my_prop = 0.7, nb_replicates = 10){
           train_data = analysis(split_cv)
           test_data = assessment((split_cv))
           
-          res_optim_affine = optim(par = optimization_function(predicteur_affine,nb_par = 2), 
+          par_affine = optim(par = optimization_function(predicteur_affine,nb_par = 2), 
                                    predicteur = predicteur_affine, 
                                    my_data = train_data, 
                                    cost_function, 
-                                   method = "Nelder-Mead")$value
+                                   method = "Nelder-Mead")$par
           
-          res_optim_log = optim(par = optimization_function(predicteur_log,nb_par = 2), 
+          par_log = optim(par = optimization_function(predicteur_log,nb_par = 2), 
                                    predicteur = predicteur_log, 
                                    my_data = train_data, 
                                    cost_function, 
-                                   method = "Nelder-Mead")$value
+                                   method = "Nelder-Mead")$par
           
-          res_optim_Horvath = optim(par = optimization_function(predicteur_Horvath,nb_par = 3), 
+          par_Horvath = optim(par = optimization_function(predicteur_Horvath,nb_par = 3), 
                                     predicteur = predicteur_Horvath, 
                                     my_data = train_data, 
                                     cost_function, 
-                                    method = "Nelder-Mead")$value
+                                    method = "Nelder-Mead")$par
           
-          tibble(method = c("Affine", "log", "Horvath"),
-                 performance = c(res_optim_affine, res_optim_log, res_optim_Horvath))
+          par_Quadratic = optim(par = optimization_function(predicteur_Quadratic,nb_par = 2), 
+                                    predicteur = predicteur_Quadratic, 
+                                    my_data = train_data, 
+                                    cost_function, 
+                                    method = "Nelder-Mead")$par
+          
+          
+          
+          value_Affine = cost_function(par_affine, predicteur_affine, my_data = test_data)
+          value_Log = cost_function(par_log, predicteur_log, my_data = test_data)
+          value_Horvath = cost_function(par_Horvath, predicteur_Horvath, my_data = test_data)
+          value_Quadratic = cost_function(par_Quadratic, predicteur_Quadratic, my_data = test_data)
+          
+          
+          
+          tibble(method = c("Affine", "Logarithmic", "Horvath", "Quadratic"),
+                 performance = c(value_Affine, 
+                                 value_Log,
+                                 value_Horvath, 
+                                 value_Quadratic))
           
           
         }) %>% 
