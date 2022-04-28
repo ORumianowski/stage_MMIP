@@ -84,7 +84,7 @@ ggplot(data_antler,
 
 # On calcule la difference par Pop_Id
 # Comme on fait le même traitelent pour chacun, on utilisre group_by et group_map
-difference_telomere = dplyr::select(data_antler, Pop_Id, Year, RTL) %>% 
+data_difference_telomere = dplyr::select(data_antler, Pop_Id, Year, RTL) %>% 
   na.omit() %>% 
   group_by(Pop_Id) %>% 
   group_map(.f = function(tableau, groupe){
@@ -92,7 +92,7 @@ difference_telomere = dplyr::select(data_antler, Pop_Id, Year, RTL) %>%
       return(NULL)
     }
     else
-      tibble(Difference = arrange(tableau, Year) %>% # On trie le tableau par annee
+      tibble(Difference_telo = arrange(tableau, Year) %>% # On trie le tableau par annee
                pull(RTL) %>%  # On extrait la colonne RTL
                diff(),
              Pop_Id = groupe$Pop_Id) %>% 
@@ -100,13 +100,51 @@ difference_telomere = dplyr::select(data_antler, Pop_Id, Year, RTL) %>%
   }) %>% 
   bind_rows() %>% # Pour aggréger la liste de tableau
   left_join(dplyr::select(filter(data_antler, Year == 2016), 
-                          Pop_Id, AgeAccelLOO))
+                          Pop_Id, AgeAccelResiduals))
 
 
 
 
-ggplot(difference_telomere,
-       aes(x = AgeAccelLOO,
-           y = Difference)) +
-  geom_point()
+ggplot(data_difference_telomere,
+       aes(x = AgeAccelResiduals,
+           y = Difference_telo,
+           label = Pop_Id)) +
+  geom_point()+
+  geom_text(hjust=1, vjust=0)
+
+
+# variation de AgeAccelResiduals ------------------------------------------
+
+data_difference_DNAm = dplyr::select(data_antler, Pop_Id, Year, Antler_std, AgeAccelResiduals) %>% 
+  na.omit() %>% 
+  group_by(Pop_Id) %>% 
+  group_map(.f = function(tableau, groupe){
+    if(nrow(tableau) == 1){
+      return(NULL)
+    }
+    else
+      tibble(difference_DNAm = arrange(tableau, Year) %>% # On trie le tableau par annee
+               pull(AgeAccelResiduals) %>%  # On extrait la colonne RTL
+               diff(),
+             Pop_Id = groupe$Pop_Id) %>% 
+      return() # On sort les différences
+  }) %>% 
+  bind_rows() %>% # Pour aggréger la liste de tableau
+  left_join(dplyr::select(filter(data_antler, Year == 2016), 
+                          Pop_Id, Antler_std, AgeClass, Weight))
+
+
+
+
+ggplot(data_difference_DNAm,
+       aes(x = Antler_std,
+           y = difference_DNAm,
+           color = AgeClass,
+           size = Weight,
+           label = Pop_Id)) +
+  geom_point()+
+  geom_text(hjust=1, vjust=0)
+
+lm(difference_DNAm ~ log(Antler_std) + log(Weight):log(Antler_std) + log(Weight), data = data_difference_DNAm) %>% 
+  summary()
 
