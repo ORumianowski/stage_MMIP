@@ -1,0 +1,534 @@
+---
+title: "Antler ~ DNAmAge"
+author: "RUMIANOWSKI 0."
+date: "21/04/2022"
+output: 
+  html_document:
+    theme: simplex
+    toc: yes 
+    toc_float: yes
+    code_folding: hide
+encoding: UTF-8
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+```{r}
+rm(list = ls()) # nettoyage de l'environnement de travail
+
+
+# Chargement du jeu de données --------------------------------------------
+
+library(readxl) # pour charger les fichiers excel
+library(tidyr)
+library(tibble)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(lme4)
+library(naniar)
+library(UpSetR)
+library(corrplot)
+library(stringr)
+library(emmeans)
+library(cowplot)
+library(lmerTest)
+library(MuMIn)
+
+```
+
+
+
+```{r}
+data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
+  mutate(PlateNumber = as.factor(PlateNumber), 
+         Batch_number = as.factor(Batch_number),
+         ProblemDNA_Concentration = as.factor(ProblemDNA_Concentration),
+         PlateTelomere  = as.factor(PlateTelomere),
+         DNAmAgeLOO = as.numeric(DNAmAgeLOO),
+         `AgeAccelLOO(ComputedUCLA)` = as.numeric(`AgeAccelLOO(ComputedUCLA)`),
+         RightAntlerLength    = str_remove(RightAntlerLength, "_broken") %>% 
+           as.numeric(),
+         AntlerLength = map2_dbl(.x = Left_AntlerLength, 
+                                 .y = RightAntlerLength,
+                                 .f = function(x, y){
+                                   if(is.na(x))
+                                     return(y)
+                                   else if(is.na(y))
+                                     return(x)
+                                   else
+                                     return(max(x, y))
+                                 }
+         ),
+         AgeClass = cut(Age, breaks = c(0,1,4,8,25)) %>% 
+           as.character(),
+         Age_2 = Age**2,
+         Age_log = log((Age)),
+         Cohort = factor(Cohort)) %>% 
+  rename(Year = YearCapture,
+         Day = JulianCaptureDate,
+         Cohort_Type = `Cohort_Quality_Type(Good/Bad)`,
+         DNAmAge = DNAmAgeLOO,
+         AgeAccelLOO = `AgeAccelLOO(ComputedUCLA)`,
+         Weight = WeightAnimal.kg,
+         ProblemDNA  = ProblemDNA_Concentration,
+         RTL = QC_RTL) %>% 
+  select(Pop_Id, Year, Day, 
+         Cohort, Cohort_Type, Population, 
+         Age, Age_2, Age_log, AgeClass, Weight, AntlerLength, AntlerType,
+         RTL, DNAmAge, AgeAccelLOO, ProblemDNA)
+
+
+```
+
+```{r}
+# Problem with the sample
+data_antler = data_antler[-which(data_antler$Pop_Id=="CM2301" & data_antler$Year=="2016") , ]
+# Problem with the sample (Female)
+data_antler = data_antler[-which(data_antler$Pop_Id=="TM368" & data_antler$Year=="2018") , ]
+
+# Unmeasured Antler Length
+data_antler = data_antler[-which(data_antler$Pop_Id=="CM2317" & data_antler$Year=="2016") , ]
+data_antler = data_antler[-which(data_antler$Pop_Id=="TM3069" & data_antler$Year=="2018") , ]
+
+```
+
+
+```{r}
+vis_miss(data_antler)
+```
+
+
+```{r}
+
+data_antler_used_std =select(data_antler, 
+    Pop_Id, 
+    Year,
+    Day,
+    AntlerLength,
+    AntlerType,
+    AgeClass,
+    Population) 
+
+
+# Fonctions de standardisation --------------------------------------------
+
+DATE_REF = 80
+
+std_antler = function(antler_length, date, pars, date_ref = DATE_REF) {
+  a = pars[1]
+  b = pars[2]
+  (antler_length - (a * date + b))  + a * date_ref + b
+}
+
+# Définition des fonctions de modélisation de la longueur des bois --------
+
+# fonction constante
+
+constante = function(pars, x) {
+  a = pars[1]
+  
+  a
+}
+
+# fonction linéaire
+
+lineaire = function(pars, x = 0) {
+  a = pars[1]
+  b = pars[2]
+  
+  a * x + b
+}
+
+# fonction de seuil avec une pente et un plateau
+
+one_slope = function(pars, x) {
+  a = pars[1]
+  b = pars[2]
+  seuil = pars[3]
+  
+  ifelse(x < seuil, a * x + b, a * seuil + b)
+}
+
+# fonction de seuil avec deux pentes
+
+two_slopes = function(pars, x) {
+  a = pars[1]
+  b = pars[2]
+  seuil = pars[3]
+  c = pars[4]
+  OO_2 = (a - c) * seuil + b
+  
+  ifelse(test = x < seuil,
+         yes = a * x + b,
+         no = c * x + OO_2)
+}
+```
+
+
+```{r}
+
+# Fonction d'optimisation par MV ------------------------------------------
+
+n = 1000
+X = abs(rnorm(n))
+Y = lineaire(c(2, 5, 1), X) + rnorm(length(X), sd = .5)
+
+
+plan_experience = tibble(
+  ma_fonction = c(constante, lineaire, one_slope, two_slopes),
+  initial_pars = list(c(0, 1), c(1, 0, 1), c(1, 0, 1, 1), c(1, 0, 0, 2, 1))
+)
+
+
+NLL = function(pars,
+               ma_fonction,
+               y = Y,
+               x = X) {
+  # Values predicted by the model
+  sigma = pars[length(pars)]
+  parametres_moyenne = pars[-length(pars)]
+  Gpred = ma_fonction(parametres_moyenne, x)
+  # Negative log-likelihood 
+  -sum(dnorm(
+    x = y,
+    mean = Gpred,
+    sd = sigma,
+    log = TRUE
+  ))
+}
+
+get_AIC = function(initial_pars,
+                   ma_fonction,
+                   y = Y,
+                   x = X) {
+  neg_log_lik = optim(
+    par = initial_pars,
+    fn = function(p)
+      NLL(
+        p,
+        ma_fonction = ma_fonction,
+        y = Y,
+        x = X
+      ),
+    hessian = TRUE
+  )$value
+  2 * neg_log_lik + 2 * length(initial_pars)
+}
+
+#purrr::pmap_dbl(plan_experience,get_AIC)
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+
+# optim_output$par
+```
+
+
+```{r, , fig.height=3, fig.width=4, echo = FALSE}
+
+# Application aux données réelles -----------------------------------------
+
+# CHIZE -------------------------------------------------------------------
+
+# Premiere classe ---------------------------------------------------------
+
+data_antler_2 = subset(data_antler_used_std, AntlerType == "BV" | is.na(AntlerType)) %>%
+  subset(AgeClass == "(0,1]" & Population == "C" & AntlerLength > 1) # Les bois inf. à 1 sont considérer comme invariants
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+#purrr::pmap_dbl(plan_experience, get_AIC)
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+
+
+
+
+data_antler_3 = mutate(data_antler_2,
+                       Antler_std = exp(std_antler(
+                         log(AntlerLength), Day, optim_output$par
+                       )))
+
+
+data_antler_1C = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+
+
+# Classes supérieures -----------------------------------------------------
+
+
+data_antler_2 = subset(data_antler_used_std, AntlerType == "BV"| is.na(AntlerType)) %>%
+  subset(AgeClass != "(0,1]" & Population == "C") 
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+#purrr::pmap_dbl(plan_experience, get_AIC)
+
+optim_output = optim(
+  par = c(0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = constante,
+      y = Y,
+      x = X
+    )
+)
+
+
+data_antler_3 = mutate(data_antler_2,
+                       Antler_std = AntlerLength)
+
+
+data_antler_NC = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+
+# Trois Fontaines ---------------------------------------------------------
+
+# Premiere classe ---------------------------------------------------------
+
+data_antler_2 = subset(data_antler_used_std,AntlerType == "BV" | is.na(AntlerType)) %>%
+  subset(AgeClass == "(0,1]" & Population == "TF") 
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+#purrr::pmap_dbl(plan_experience, get_AIC)
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+
+
+
+
+data_antler_3 = mutate(data_antler_2,
+                       Antler_std = exp(std_antler(
+                         log(AntlerLength), Day, optim_output$par
+                       )))
+
+
+data_antler_1TF = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+
+
+# Classes supérieures -----------------------------------------------------
+
+
+data_antler_2 = subset(data_antler_used_std, AntlerType == "BV" | is.na(AntlerType)) %>%
+  subset(AgeClass != "(0,1]" & Population == "TF") 
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+#purrr::pmap_dbl(plan_experience, get_AIC)
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+
+
+
+data_antler_3 = mutate(data_antler_2,
+                       Antler_std = exp(std_antler(
+                         log(AntlerLength), Day, optim_output$par
+                       )))
+
+data_antler_NTF = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+
+data_antler_std = rbind(data_antler_1C,
+                        data_antler_NC,
+                        data_antler_1TF,
+                        data_antler_NTF)
+
+data_antler_complet <-  merge(data_antler_used_std, data_antler_std, by=c("Pop_Id", "Year"), all.x = TRUE)
+
+
+# Traitement des cas Antler_Type==BD  & AntlerLength <= 1 --------------------
+
+for (k in 1:nrow(data_antler_complet)){
+  if (!is.na(data_antler_complet[k, "AntlerType"])){
+    if (data_antler_complet[k, "AntlerType"] == "BD"){ 
+      data_antler_complet[k, "Antler_std"] = data_antler_complet[k, "AntlerLength"]
+    }
+  }
+  if (data_antler_complet[k, "AntlerLength"] <= 1){
+    data_antler_complet[k, "Antler_std"] = data_antler_complet[k, "AntlerLength"]
+  }
+}
+
+data_antler_complet <- data_antler_complet[,c("Pop_Id", "Year", "Antler_std")]
+data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), all.x = TRUE)
+
+```
+
+
+
+```{r, fig.height=3, fig.width=4, echo = FALSE}
+
+# creation de la variable DNAm acceleration via les residus ---------------
+
+data_antler_accel = select(data_antler, 
+                           DNAmAge, Age, Age_2, Age_log, Pop_Id, Year) %>% 
+  na.omit
+
+regaccel = lm(DNAmAge ~ Age, data_antler_accel)
+regaccel_Age_2 = lm(DNAmAge ~ Age + Age_2, data_antler_accel)
+regaccel_Age_log = lm(DNAmAge ~ Age + Age_log, data_antler_accel)
+
+data_antler_accel = data_antler_accel %>% 
+  mutate(AgeAccelResiduals = regaccel_Age_log$residuals)
+
+
+# creation de la variable investissement dans les bois via les residus --------
+
+
+data_antler_invess = select(data_antler, 
+                           Antler_std, Weight, Pop_Id, Year) %>% 
+  na.omit %>% 
+  mutate(Weight2 = Weight**2)
+
+reginvess = lm(Antler_std ~ Weight , data_antler_invess)
+reginvess_2 = lm(Antler_std ~ Weight + Weight2 , data_antler_invess)
+reginvess_log = lm(Antler_std ~ Weight + log(Weight), data_antler_invess)
+
+
+data_antler_invess = data_antler_invess %>% 
+  mutate(InvessResiduals = reginvess$residuals)
+
+
+# creation dataset avec les variables tranformées -------------------------
+
+data_antler_accel = data_antler_accel[, c("Pop_Id", "Year", "AgeAccelResiduals")]
+data_antler_complet <-  merge(data_antler, data_antler_accel, by=c("Pop_Id", "Year"), all.x = TRUE)
+
+data_antler_invess = data_antler_invess[, c("Pop_Id", "Year", "InvessResiduals")]
+data_antler <-  merge(data_antler_complet, data_antler_invess, by=c("Pop_Id", "Year"), all.x = TRUE)
+
+```
+
+
+
+```{r}
+ggplot(data_antler,
+       aes(x = Antler_std,
+           y = AgeAccelResiduals,
+           color=AgeClass)) +
+  geom_point()+
+  labs( x = "Standardized antler length")
+```
+
+
+
+### Modèles linéaires préliminaires liant l'accélération de l'âge épigénétique et la qualité de bois.
+
+#### Sur toute la population
+
+```{r}
+
+data_antler_complet = select(data_antler, 
+                     Pop_Id, Year, Day, 
+                     Cohort, Cohort_Type, Population, 
+                     Age, Age_2, Age_log, AgeClass,
+                     Weight, AntlerLength, 
+                     DNAmAge, AgeAccelLOO, ProblemDNA,
+                     Antler_std, AgeAccelResiduals) %>% 
+  subset(Antler_std>=1) %>% 
+  mutate(Antler_std_log = log(Antler_std),
+         Weight_log = log(Weight)) %>% 
+  na.omit()
+
+reg_lm_full <- lmer(AgeAccelResiduals ~ Antler_std_log + Weight_log +
+                      Age + AgeClass +
+                      Population+ Cohort_Type +
+                      Antler_std_log:Population + Antler_std_log:Weight_log +
+                      (1|Cohort),  
+                    data=data_antler_complet)
+
+
+options(na.action = "na.fail")
+
+fm_full <- reg_lm_full
+ms_full <- dredge(fm_full)
+
+head(ms_full)
+
+par(mar = c(3,5,6,4))
+plot(ms_full, labAsExpr = TRUE)
+
+```
+
+#### Sur toute les premières années
+
+```{r}
+
+data_antler_1A = select(data_antler, 
+                             Pop_Id, Year, Day, 
+                             Cohort, Cohort_Type, Population, 
+                             Age, Age_2, Age_log, AgeClass,
+                             Weight, AntlerLength, 
+                             DNAmAge, AgeAccelLOO, ProblemDNA,
+                             Antler_std, AgeAccelResiduals) %>% 
+  subset(Antler_std>=1) %>% 
+  subset(Age<1) %>% 
+  mutate(Antler_std_log = log(Antler_std),
+         Weight_log = log(Weight)) %>% 
+  na.omit()
+
+
+reg_lm_1A <- lm(AgeAccelResiduals ~ Antler_std_log + Population + Weight_log +
+                  Antler_std_log:Population + Antler_std_log:Weight_log,  
+                data=data_antler_1A)
+
+
+options(na.action = "na.fail")
+
+fm1A <- reg_lm_1A
+ms1A <- dredge(fm1A)
+
+head(ms1A)
+
+par(mar = c(3,5,6,4))
+plot(ms1A, labAsExpr = TRUE)
+
+```
+

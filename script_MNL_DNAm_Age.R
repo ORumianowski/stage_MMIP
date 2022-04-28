@@ -1,3 +1,5 @@
+
+
 rm(list = ls()) # nettoyage de l'environnement de travail
 
 # Chargement du jeu de données --------------------------------------------

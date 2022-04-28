@@ -1,9 +1,3 @@
-rm(list = ls()) # nettoyage de l'environnement de travail
-
-# Chargement du jeu de données --------------------------------------------
-
-source("utils_packages.R")
-source("script_pretraitement_data_antler.R")
 
 # Problem with the sample
 data_antler = data_antler[-which(data_antler$Pop_Id=="CM2301" & data_antler$Year=="2016") , ]

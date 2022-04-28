@@ -1,10 +1,3 @@
-rm(list = ls()) # nettoyage de l'environnement de travail
-
-# Chargement du jeu de données --------------------------------------------
-
-source("utils_packages.R")
-source("script_pretraitement_data_antler.R")
-source("script_standardisation_antler.R")
 
 data_antler_accel = data_antler[,c("DNAmAge", "Age", "Age_2", "Age_log", "Pop_Id", "Year")] %>% 
   na.omit
