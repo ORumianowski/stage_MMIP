@@ -131,7 +131,7 @@ data_difference_DNAm = dplyr::select(data_antler, Pop_Id, Year, Antler_std, AgeA
   }) %>% 
   bind_rows() %>% # Pour aggréger la liste de tableau
   left_join(dplyr::select(filter(data_antler, Year == 2016), 
-                          Pop_Id, Antler_std, AgeClass, Weight))
+                          Pop_Id, Antler_std, AgeClass, Weight, Antler_std, InvessResiduals, AgeAccelResiduals))
 
 
 
@@ -143,7 +143,8 @@ ggplot(data_difference_DNAm,
            size = Weight,
            label = Pop_Id)) +
   geom_point()+
-  geom_text(hjust=1, vjust=0)
+  geom_text(hjust=1, vjust=0)+
+  labs( y = "AgeAccel(N+1) - AgeAccel(N)")
 
 lm(difference_DNAm ~ log(Antler_std) + log(Weight):log(Antler_std) + log(Weight), data = data_difference_DNAm) %>% 
   summary()
