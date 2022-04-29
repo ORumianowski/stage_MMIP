@@ -210,5 +210,7 @@ cv_res %>%
     max = max(performance, na.rm = TRUE),
     min = min(performance, na.rm = TRUE),
     mean = mean(performance, na.rm = TRUE)
-  )
+  ) %>% 
+  kbl() %>%
+  kable_paper(bootstrap_options = "striped", full_width = F)
 

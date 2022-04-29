@@ -126,15 +126,14 @@ data_difference_DNAm = dplyr::select(data_antler, Pop_Id, Year, Antler_std, AgeA
       tibble(difference_DNAm = arrange(tableau, Year) %>% # On trie le tableau par annee
                pull(AgeAccelResiduals) %>%  # On extrait la colonne RTL
                diff(),
+             difference_DNAm_relative = difference_DNAm /(arrange(tableau, Year) %>%
+                                                            slice(1) %>% # On trie le tableau par annee
+                                                            pull(AgeAccelResiduals)),
              Pop_Id = groupe$Pop_Id) %>% 
       return() # On sort les différences
   }) %>% 
   bind_rows() %>% # Pour aggréger la liste de tableau
-  left_join(dplyr::select(filter(data_antler, Year == 2016), 
-                          Pop_Id, Antler_std, AgeClass, Weight, Antler_std, InvessResiduals, AgeAccelResiduals))
-
-
-
+  left_join(dplyr::filter(data_antler, Year == 2016))
 
 ggplot(data_difference_DNAm,
        aes(x = Antler_std,
@@ -146,6 +145,16 @@ ggplot(data_difference_DNAm,
   geom_text(hjust=1, vjust=0)+
   labs( y = "AgeAccel(N+1) - AgeAccel(N)")
 
-lm(difference_DNAm ~ log(Antler_std) + log(Weight):log(Antler_std) + log(Weight), data = data_difference_DNAm) %>% 
-  summary()
 
+ggplot(data_difference_DNAm,
+       aes(x = InvessResiduals,
+           y = difference_DNAm,
+           color = Cohort_Type,
+           size = Weight,
+           label = Pop_Id)) +
+  geom_point()+
+  geom_text(hjust=1, vjust=0)+
+  labs( y = "AgeAccel(N+1) - AgeAccel(N)")
+
+lm(difference_DNAm ~ InvessResiduals  + Cohort_Type + Weight, data = data_difference_DNAm) %>% 
+  summary()

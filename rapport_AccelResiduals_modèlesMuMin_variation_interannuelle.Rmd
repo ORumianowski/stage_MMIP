@@ -1,0 +1,421 @@
+---
+title: "AccelResiduals, modèles MuMin & variation interannuelle"
+author: "RUMIANOWSKI 0."
+date: "29/04/2022"
+output: 
+  html_document:
+    theme: simplex
+    toc: yes 
+    toc_float: yes
+    code_folding: hide
+encoding: UTF-8
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+```{r}
+rm(list = ls()) # nettoyage de l'environnement de travail
+source("utils_packages.R")
+source("script_pretraitement_data_antler.R")
+source("script_standardisation_antler.R")
+source("script_determination_ageaccel.R")
+
+```
+
+### Construction de l'indice d'accélération de l'âge épigénétique
+
+Les estimateurs d’âge basés sur l’état de méthylation des dinucléotides possèdent une capacité prédictive très élevée. Les différences avec l’âge chronologique comprennent un signal biologique utilisé pour étudier les trajectoires individuelles. Les résidus issus de la régression en l’âge épigénétique sur l’âge retenue fournissent un indice d’accélération de l’âge épigénétique.
+
+
+
+```{r, fig.height=3, fig.width=4, echo = FALSE}
+ggplot(data_antler,
+       aes(x = Antler_std,
+           y = AgeAccelLOO,
+           color=AgeClass)) +
+  geom_point()+
+  labs( x = "Standardized antler length")
+
+ggplot(data_antler,
+       aes(x = Antler_std,
+           y = AgeAccelResiduals,
+           color=AgeClass)) +
+  geom_point()+
+  labs( x = "Standardized antler length")
+```
+
+
+```{r}
+rm(list = ls()) # nettoyage de l'environnement de travail
+source("utils_packages.R")
+source("script_pretraitement_data_antler.R")
+```
+
+
+```{r}
+
+data_antler = select(data_antler, Age,  DNAmAge) %>% 
+  na.omit()
+
+# Definition de la fonction de cout pour n'importe quel predicteur
+
+cost_function <- function(parametre, predicteur, my_data = data_antler){
+  sum(map2_dbl(.x = my_data$Age, .y = my_data$DNAmAge, function(x, y) (y - predicteur(parametre, x))^2))
+}
+
+
+# Predicteur Affine ---------------------------------------------------------
+
+predicteur_affine <- function(parametre, Age){
+  alpha = parametre[1]
+  beta <- parametre[2]
+  
+  alpha + beta * Age
+}
+
+
+# Predicteur log -------------------------------------------------------
+
+
+predicteur_log <- function(parametre, Age){
+  alpha = parametre[1]
+  beta <- parametre[2]
+  
+  alpha * log(Age+1) + beta * Age
+}
+
+
+# Prédicteur Horvath ------------------------------------------------------
+
+predicteur_Horvath = function(parametre, Age){
+  
+  alpha = parametre[1]
+  beta <- parametre[2]
+  adult.age <- parametre[3]
+  
+  
+  alpha * log(Age+1) * (Age < adult.age) +
+    (beta * (Age-adult.age)/(adult.age + 1) + alpha * log(adult.age+1)) * (Age>=adult.age)
+  
+}
+
+
+# Prédicteur Quadratic ------------------------------------------------------
+
+predicteur_Quadratic = function(parametre, Age){
+  
+  alpha = parametre[1]
+  beta <- parametre[2]
+  adult.age <- parametre[3]
+  
+  
+  alpha * Age + beta * Age**2
+}
+
+# Representation graphique ------------------------------------------------
+
+optimization_function = function(mon_predicteur, nb_par, nb_replicates = 10){
+  rerun(nb_replicates,# On fait tourner nb_replicates fois le meme traitement
+        {
+          param = runif(nb_par, 0, 4) # Generation aleatoire du param initial
+          # Optimisation a partir de ce parametre
+          res_optim = optim(param, predicteur = mon_predicteur, 
+                            cost_function, method = "Nelder-Mead")
+          # Aggregation des resultats dans un tableau
+          tibble(value = res_optim$value, par =  list(res_optim$par))
+        }) %>% 
+    bind_rows() %>% # Aggrege dans un tableau
+    filter(value == min(value)) %>% # Filtre sur ceux qui atteignent le minimum
+    slice(1) %>% # Prend la premiere ligne
+    pull(par) %>% # On prend le parametre
+    unlist() # On le met en vecteur
+}
+```
+
+
+
+
+```{r}
+
+cv_function = function(my_prop = 0.7, nb_replicates = 10){
+  rerun(nb_replicates,# On fait tourner nb_replicates fois le meme traitement
+        { 
+          split_cv = initial_split(data_antler, prop=my_prop)
+          
+          train_data = analysis(split_cv)
+          test_data = assessment((split_cv))
+          
+          par_affine = optim(par = optimization_function(predicteur_affine,nb_par = 2), 
+                                   predicteur = predicteur_affine, 
+                                   my_data = train_data, 
+                                   cost_function, 
+                                   method = "Nelder-Mead")$par
+          
+          par_log = optim(par = optimization_function(predicteur_log,nb_par = 2), 
+                                   predicteur = predicteur_log, 
+                                   my_data = train_data, 
+                                   cost_function, 
+                                   method = "Nelder-Mead")$par
+          
+          par_Horvath = optim(par = optimization_function(predicteur_Horvath,nb_par = 3), 
+                                    predicteur = predicteur_Horvath, 
+                                    my_data = train_data, 
+                                    cost_function, 
+                                    method = "Nelder-Mead")$par
+          
+          par_Quadratic = optim(par = optimization_function(predicteur_Quadratic,nb_par = 2), 
+                                    predicteur = predicteur_Quadratic, 
+                                    my_data = train_data, 
+                                    cost_function, 
+                                    method = "Nelder-Mead")$par
+          
+          
+          
+          value_Affine = cost_function(par_affine, predicteur_affine, my_data = test_data)
+          value_Log = cost_function(par_log, predicteur_log, my_data = test_data)
+          value_Horvath = cost_function(par_Horvath, predicteur_Horvath, my_data = test_data)
+          value_Quadratic = cost_function(par_Quadratic, predicteur_Quadratic, my_data = test_data)
+          
+          
+          
+          tibble(method = c("Affine", "Logarithmic", "Horvath", "Quadratic"),
+                 performance = c(value_Affine, 
+                                 value_Log,
+                                 value_Horvath, 
+                                 value_Quadratic))
+          
+          
+        }) %>% 
+    bind_rows(.id = "Replicate") 
+}
+
+```
+
+```{r}
+cv_res = cv_function(my_prop = 0.7, nb_replicates = 10)
+
+```
+
+La dynamique de méthylation étant plus active durant le développement, l’âge épigénétique n’évolue pas de manière linéaire. Pour construire son estimateur de 2013, Horvath calibre son estimateur sur une transformation de l’âge chronologique avec une évolution logarithmique avant l’âge adulte et linéaire ensuite. Dans Lemaître et al. 2022, l’estimateur utilisé a été construit directement sur l’âge chronologique, sans transformation. En conséquence, l’âge épigénétique fourni conserve la tendance non-linéaire.
+
+Dans un souci d'obtenir un indice d’accélération de âge épigénétique indépendant de l’âge chronologique, il est nécessaire d’avoir la fonction meilleure modélisant au mieux la relation entre les deux variables. Quatre fonctions ont été proposées et ont été comparées par cross-validation La fonction retenue possède une composante logarithmique.
+
+Les résidus issus de la régression en l’âge épigénétique et la translation de l’âge retenue fournissent un indice d’accélération moins dépendant de l’âge chronologique.
+
+
+```{r, fig.height=3, fig.width=4, echo = FALSE}
+ggplot(data_antler) +
+  aes(x = Age, y = DNAmAge) +
+  geom_point()+
+  stat_function(aes(color = "log"), 
+                fun = predicteur_log, 
+                args = list(parametre  = optimization_function(predicteur_log, 
+                                                               nb_par = 2))) +
+  stat_function(aes(color = "Horvath"), 
+                fun = predicteur_Horvath, 
+                args = list(parametre  = optimization_function(predicteur_Horvath, 
+                                                               nb_par = 3))) +
+  
+  stat_function(aes(color = "Affine"), 
+                fun = predicteur_affine, 
+                args = list(parametre  = optimization_function(predicteur_affine, 
+                                                               nb_par = 2))) + 
+  stat_function(aes(color = "Quadratic"), 
+                fun = predicteur_Quadratic, 
+                args = list(parametre  = optimization_function(predicteur_Quadratic, 
+                                                               nb_par = 2))) + 
+  ggtitle("Tested models of DNAmAge \n  in relation to the Age")
+
+
+ggplot(cv_res, aes(x=method, y=performance, color=method)) + 
+  geom_boxplot()+ 
+  geom_jitter(shape=16, position=position_jitter(0.01))+ 
+  ggtitle("Cross-validation \n evaluating models of DNAmAge")
+```
+
+
+
+```{r}
+rm(list = ls()) # nettoyage de l'environnement de travail
+source("utils_packages.R")
+source("script_pretraitement_data_antler.R")
+source("script_standardisation_antler.R")
+source("script_determination_ageaccel.R")
+
+```
+
+### Sélection de modèles de l'accélération de l'âge épigénétique via le package MuMin
+
+Afin de réaliser une sélection de modèles à partir d'un groupe de modèles plus exhaustifs, le package MuMin a été utilisé. Il permet le calcul d'un  maximum de modèles et de les comparer selon un critère de choix, ici, l'AICc.
+
+Deux sélections de modèles ont été menées, un premier sur l'ensemble de la population d'étude, le seconde sur les premières années uniquement.
+
+#### Sur toute la population
+
+```{r}
+data_antler_complet = dplyr::select(data_antler, 
+                     Pop_Id, Year, Day, 
+                     Cohort, Cohort_Type, Population, 
+                     Age, Age_2, Age_log, AgeClass,
+                     Weight, AntlerLength, 
+                     DNAmAge, AgeAccelLOO, ProblemDNA,
+                     Antler_std, AgeAccelResiduals) %>% 
+  subset(Antler_std>=1) %>% 
+  mutate(Antler_std_log = log(Antler_std),
+         Weight_log = log(Weight)) %>% 
+  na.omit()
+
+reg_lm_full <- lmer(AgeAccelResiduals ~ Antler_std_log + Weight_log +
+                      Age + AgeClass +
+                      Population+ Cohort_Type +
+                      Antler_std_log:Population + Antler_std_log:Weight_log +
+                      (1|Cohort),  
+                    data=data_antler_complet)
+
+
+options(na.action = "na.fail")
+
+fm_full <- reg_lm_full
+ms_full <- dredge(fm_full)
+
+head(ms_full)
+
+par(mar = c(3,5,6,4))
+plot(ms_full, labAsExpr = TRUE)
+
+```
+
+#### Sur les premières années
+
+```{r}
+
+data_antler_1A = dplyr::select(data_antler, 
+                             Pop_Id, Year, Day, 
+                             Cohort, Cohort_Type, Population, 
+                             Age, Age_2, Age_log, AgeClass,
+                             Weight, AntlerLength, 
+                             DNAmAge, AgeAccelLOO, ProblemDNA,
+                             Antler_std, AgeAccelResiduals) %>% 
+  subset(Antler_std>=1) %>% 
+  subset(Age<1) %>% 
+  mutate(Antler_std_log = log(Antler_std),
+         Weight_log = log(Weight)) %>% 
+  na.omit()
+
+
+reg_lm_1A <- lm(AgeAccelResiduals ~ Antler_std_log + Population + Weight_log +
+                  Antler_std_log:Population + Antler_std_log:Weight_log,  
+                data=data_antler_1A)
+
+
+options(na.action = "na.fail")
+
+fm1A <- reg_lm_1A
+ms1A <- dredge(fm1A)
+
+head(ms1A)
+
+par(mar = c(3,5,6,4))
+plot(ms1A, labAsExpr = TRUE)
+
+```
+
+### Variation interannuelle individuelle de l'accélération épigénétique
+
+```{r}
+
+# variation de AgeAccelResiduals ------------------------------------------
+
+data_difference_DNAm = dplyr::select(data_antler, Pop_Id, Year, Antler_std, AgeAccelResiduals) %>% 
+  na.omit() %>% 
+  group_by(Pop_Id) %>% 
+  group_map(.f = function(tableau, groupe){
+    if(nrow(tableau) == 1){
+      return(NULL)
+    }
+    else
+      tibble(difference_DNAm = arrange(tableau, Year) %>% # On trie le tableau par annee
+               pull(AgeAccelResiduals) %>%  # On extrait la colonne RTL
+               diff(),
+             difference_DNAm_relative = difference_DNAm /(arrange(tableau, Year) %>%
+                                                            slice(1) %>% # On trie le tableau par annee
+                                                            pull(AgeAccelResiduals)),
+             Pop_Id = groupe$Pop_Id) %>% 
+      return() # On sort les différences
+  }) %>% 
+  bind_rows() %>% # Pour aggréger la liste de tableau
+  left_join(dplyr::filter(data_antler, Year == 2016))
+
+```
+
+
+L'indice d'accélération de l'âge épigénétique n'est réellement un indice de dynamique de méthylation mais un indice de déviance à une tendance globale. Cet état est issu de l'ensemble du parcours de vie passé de l'individu. En ne s'intéressant pas à cet état mais la variation de cet état entre deux mesures, on élimine l'effet accumulatif du passé. La pousse des bois étant annuelle chez les chevreuils et la longueur des bois entre années pouvant évoluer, il semble plus pertinent d'utiliser la variation interannuelle de l'indice de l'accélération du vieillissement afin de tester s'il y a un coût épigénétique associé à la production annuelle de bois.
+
+
+```{r, fig.height=3, fig.width=4, echo = FALSE}
+ggplot(data_difference_DNAm,
+       aes(x = Antler_std,
+           y = difference_DNAm,
+           color = AgeClass,
+           size = Weight,
+           label = Pop_Id)) +
+  geom_point()+
+  geom_text(hjust=1, vjust=0)+
+  labs( y = "AgeAccel(N+1) - AgeAccel(N)")
+
+
+ggplot(data_difference_DNAm,
+       aes(x = InvessResiduals,
+           y = difference_DNAm,
+           color = Cohort_Type,
+           size = Weight,
+           label = Pop_Id)) +
+  geom_point()+
+  geom_text(hjust=1, vjust=0)+
+  labs( y = "AgeAccel(N+1) - AgeAccel(N)")
+
+```
+
+### Variation interannuelle individuelle de la longueur télomérique
+
+```{r}
+# On calcule la difference par Pop_Id
+# Comme on fait le même traitelent pour chacun, on utilisre group_by et group_map
+data_difference_telomere = dplyr::select(data_antler, Pop_Id, Year, RTL) %>% 
+  na.omit() %>% 
+  group_by(Pop_Id) %>% 
+  group_map(.f = function(tableau, groupe){
+    if(nrow(tableau) == 1){
+      return(NULL)
+    }
+    else
+      tibble(Difference_telo = arrange(tableau, Year) %>% # On trie le tableau par annee
+               pull(RTL) %>%  # On extrait la colonne RTL
+               diff(),
+             Pop_Id = groupe$Pop_Id) %>% 
+      return() # On sort les différences
+  }) %>% 
+  bind_rows() %>% # Pour aggréger la liste de tableau
+  left_join(filter(data_antler, Year == 2016))
+```
+
+
+```{r, fig.width=4, echo = FALSE}
+ggplot(data_difference_telomere,
+       aes(x = AgeAccelResiduals,
+           y = Difference_telo,
+           label = Pop_Id)) +
+  geom_point()+
+  geom_text(hjust=1, vjust=0)
+
+ggplot(data_difference_telomere,
+       aes(x = Antler_std,
+           y = Difference_telo,
+           label = Pop_Id)) +
+  geom_point()+
+  geom_text(hjust=1, vjust=0)
+```
+
+
