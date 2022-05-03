@@ -66,9 +66,9 @@ cost_function <- function(parametre, predicteur, my_data = data_antler){
 }
 
 
-# Predicteur Affine ---------------------------------------------------------
+# Predicteur Lineaire ---------------------------------------------------------
 
-predicteur_affine <- function(parametre, Age){
+predicteur_Lineaire <- function(parametre, Age){
   alpha = parametre[1]
   beta <- parametre[2]
   
@@ -139,7 +139,7 @@ optimization_function = function(mon_predicteur, nb_par, nb_replicates = 10){
 
 ```{r}
 
-cv_function = function(my_prop = 0.7, nb_replicates = 10){
+cv_function = function(my_prop = 0.7, nb_replicates = 100){
   rerun(nb_replicates,# On fait tourner nb_replicates fois le meme traitement
         { 
           split_cv = initial_split(data_antler, prop=my_prop)
@@ -147,8 +147,8 @@ cv_function = function(my_prop = 0.7, nb_replicates = 10){
           train_data = analysis(split_cv)
           test_data = assessment((split_cv))
           
-          par_affine = optim(par = optimization_function(predicteur_affine,nb_par = 2), 
-                                   predicteur = predicteur_affine, 
+          par_Lineaire = optim(par = optimization_function(predicteur_Lineaire,nb_par = 2), 
+                                   predicteur = predicteur_Lineaire, 
                                    my_data = train_data, 
                                    cost_function, 
                                    method = "Nelder-Mead")$par
@@ -173,15 +173,15 @@ cv_function = function(my_prop = 0.7, nb_replicates = 10){
           
           
           
-          value_Affine = cost_function(par_affine, predicteur_affine, my_data = test_data)
+          value_Lineaire = cost_function(par_Lineaire, predicteur_Lineaire, my_data = test_data)
           value_Log = cost_function(par_log, predicteur_log, my_data = test_data)
           value_Horvath = cost_function(par_Horvath, predicteur_Horvath, my_data = test_data)
           value_Quadratic = cost_function(par_Quadratic, predicteur_Quadratic, my_data = test_data)
           
           
           
-          tibble(method = c("Affine", "Logarithmic", "Horvath", "Quadratic"),
-                 performance = c(value_Affine, 
+          tibble(method = c("Lineaire", "Logarithmic", "Horvath", "Quadratic"),
+                 performance = c(value_Lineaire, 
                                  value_Log,
                                  value_Horvath, 
                                  value_Quadratic))
@@ -200,7 +200,7 @@ cv_res = cv_function(my_prop = 0.7, nb_replicates = 10)
 
 La dynamique de méthylation étant plus active durant le développement, l’âge épigénétique n’évolue pas de manière linéaire. Pour construire son estimateur de 2013, Horvath calibre son estimateur sur une transformation de l’âge chronologique avec une évolution logarithmique avant l’âge adulte et linéaire ensuite. Dans Lemaître et al. 2022, l’estimateur utilisé a été construit directement sur l’âge chronologique, sans transformation. En conséquence, l’âge épigénétique fourni conserve la tendance non-linéaire.
 
-Dans un souci d'obtenir un indice d’accélération de âge épigénétique indépendant de l’âge chronologique, il est nécessaire d’avoir la fonction meilleure modélisant au mieux la relation entre les deux variables. Quatre fonctions ont été proposées et ont été comparées par cross-validation La fonction retenue possède une composante logarithmique.
+Afin d'obtenir un indice d’accélération de âge épigénétique indépendant de l’âge chronologique, il est nécessaire d’avoir la fonction meilleure modélisant au mieux la relation entre les deux variables. Quatre fonctions ont été proposées et ont été comparées par cross-validation La fonction retenue possède une composante logarithmique.
 
 Les résidus issus de la régression en l’âge épigénétique et la translation de l’âge retenue fournissent un indice d’accélération moins dépendant de l’âge chronologique.
 
@@ -218,9 +218,9 @@ ggplot(data_antler) +
                 args = list(parametre  = optimization_function(predicteur_Horvath, 
                                                                nb_par = 3))) +
   
-  stat_function(aes(color = "Affine"), 
-                fun = predicteur_affine, 
-                args = list(parametre  = optimization_function(predicteur_affine, 
+  stat_function(aes(color = "Lineaire"), 
+                fun = predicteur_Lineaire, 
+                args = list(parametre  = optimization_function(predicteur_Lineaire, 
                                                                nb_par = 2))) + 
   stat_function(aes(color = "Quadratic"), 
                 fun = predicteur_Quadratic, 
