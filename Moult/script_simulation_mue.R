@@ -3,6 +3,7 @@
 rm(list = ls()) # nettoyage de l'environnement de travail
 
 source("utils_packages.R")
+library(moult)
 
 # Chargement du jeu de données --------------------------------------------
 
@@ -25,7 +26,7 @@ coef_ind = sample(-10:10, 100, replace = TRUE)
 
 # Coefficient associés audata_simul années de mesures
 
-coef_annee = sample(-3:3,3, replace = TRUE)*5
+coef_annee = sample(-3:3,5, replace = TRUE)*5
 
 
 # Plan d'edata_simulpérience -------------------------------------------------------
@@ -51,7 +52,7 @@ Tia = tibble(Individu = 1:length(coef_ind))
 
 for (my_coef_annee in coef_annee){
   
-  f =map_dbl(coef_ind, .f = function(colonne = coef_ind, coef = my_coef_annee){colonne + my_coef_annee}) 
+  f =map_dbl(coef_ind, .f = function(colonne = coef_ind, coef = my_coef_annee){colonne + mu + my_coef_annee}) 
   
   Tia = bind_cols(Tia, f)
   
@@ -90,3 +91,14 @@ ggplot(data_plot,
            color=Annee)) +
   geom_point()
 
+
+res_moult = moult( data_simul$Moult_score ~ data_simul$Date | 1 
+                   
+                   | data_simul$Annee,
+                   
+                   type = 3,
+                   prec = 0.01)
+
+
+res_moult %>% 
+  summary()
