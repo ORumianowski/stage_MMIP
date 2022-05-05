@@ -1,7 +1,3 @@
-
-
-rm(list = ls()) # nettoyage de l'environnement de travail
-
 source("utils_packages.R")
 library(moult)
 
@@ -40,7 +36,7 @@ coef_annee = sample(-3:3,5, replace = TRUE)*5
 
 # Les dates de prises de mesures
 
-coef_tj = sample(30:90,5, replace = TRUE)
+coef_tj = sample(30:120,5, replace = TRUE)
 
 
 # Création des données simulées -------------------------------------------
@@ -90,23 +86,3 @@ data_simul = mutate(data_simul,
 
 
 
-
-data_plot = subset(data_simul)
-
-ggplot(data_plot,
-       aes(x = Date,
-           y = Moult_score,
-           color=Annee)) +
-  geom_point()
-
-
-res_moult = moult( data_simul$Moult_score ~ data_simul$Date | 1 
-                   
-                   | data_simul$Annee,
-                   
-                   type = 5,
-                   prec = 0.01)
-
-
-res_moult %>% 
-  summary()
