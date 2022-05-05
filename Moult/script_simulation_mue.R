@@ -21,7 +21,9 @@ mu = 50
 
 # Coeffcients spécifiques audata_simul individus
 
-coef_ind = sample(-10:10, 100, replace = TRUE)
+nb_ind = 100
+
+coef_ind = sample(-10:10, nb_ind, replace = TRUE)
 
 
 # Coefficient associés audata_simul années de mesures
@@ -38,7 +40,7 @@ coef_annee = sample(-3:3,5, replace = TRUE)*5
 
 # Les dates de prises de mesures
 
-coef_tj = sample(30:70,5, replace = TRUE)
+coef_tj = sample(30:90,5, replace = TRUE)
 
 
 # Création des données simulées -------------------------------------------
@@ -52,9 +54,9 @@ Tia = tibble(Individu = 1:length(coef_ind))
 
 for (my_coef_annee in coef_annee){
   
-  f =map_dbl(coef_ind, .f = function(colonne = coef_ind, coef = my_coef_annee){colonne + mu + my_coef_annee}) 
+  Tia_a =map_dbl(coef_ind, .f = function(colonne = coef_ind, coef = my_coef_annee){colonne + mu + my_coef_annee}) 
   
-  Tia = bind_cols(Tia, f)
+  Tia = bind_cols(Tia, Tia_a)
   
 } 
 
@@ -67,24 +69,30 @@ for (my_coef_annee in coef_annee){
 
 data_simul = NULL
 
-for (j in 1:length(coef_tj)){
-  for (a in 1:length(coef_annee)){
-    
+for (a in 1:length(coef_annee)){
+  for (j in 1:length(coef_tj)){
+
     y_aj = tibble(Individu = Tia[[1]], 
            Moult_score = (1/tau)* (coef_tj[j] - Tia[[1+a]]), 
-           Date = rep(coef_tj[j],100),
-           Annee = rep(a,100))
+           Date = rep(coef_tj[j],nb_ind),
+           Annee = rep(a,nb_ind))
     
     data_simul = bind_rows(data_simul, y_aj)
     
   }
 }
 
-data_simul = mutate(data_simul,
+data_simul = mutate(data_simul,    
            Annee = as.factor(Annee),
-           Individu = as.factor(Individu))
+           Individu = as.factor(Individu)) %>% 
+  mutate( Moult_score = ifelse(Moult_score < 0, 0, Moult_score)) %>% 
+  mutate( Moult_score = ifelse(Moult_score > 1, 1, Moult_score))
+
+
+
 
 data_plot = subset(data_simul)
+
 ggplot(data_plot,
        aes(x = Date,
            y = Moult_score,
@@ -96,7 +104,7 @@ res_moult = moult( data_simul$Moult_score ~ data_simul$Date | 1
                    
                    | data_simul$Annee,
                    
-                   type = 3,
+                   type = 5,
                    prec = 0.01)
 
 
