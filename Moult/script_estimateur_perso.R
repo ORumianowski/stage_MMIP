@@ -74,8 +74,17 @@ NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
 NegLogLikelihood(data_=data_exo, c(100, 50), esp=0.02)
 
 
+tau=100
+T_ = 50
+
+data_exo_0 = subset(data_exo, Moult_score==0)
+max(data_exo_0$Date[data_exo_0$Date<T_])
+
+
+data_exo_1 = subset(data_exo, Moult_score==1)
+#min(data_exo_1$Date[data_exo_0$Date>T_+tau])
+
 optim(
   par = c(95, 45),
   fn = NegLogLikelihood
 )
-

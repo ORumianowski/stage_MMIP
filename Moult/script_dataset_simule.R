@@ -24,7 +24,7 @@ coef_ind = sample(0, nb_ind, replace = TRUE)
 
 # Coefficient associés audata_simul années de mesures
 
-coef_annee = sample(0,5, replace = TRUE)*5
+coef_annee = sample(-3:3,2, replace = TRUE)*5
 
 
 # Plan d'edata_simulpérience -------------------------------------------------------
@@ -83,6 +83,3 @@ data_simul = mutate(data_simul,
            Individu = as.factor(Individu)) %>% 
   mutate( Moult_score = ifelse(Moult_score < 0, 0, Moult_score)) %>% 
   mutate( Moult_score = ifelse(Moult_score > 1, 1, Moult_score))
-
-
-
