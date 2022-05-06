@@ -5,35 +5,40 @@ source("script_dataset_simule.R")
 
 
 f = function(esp, y){
-  (1/esp**2)*(y**2*(1-y)-esp**2*y)
+  (1/esp**2)*(y^2*(1-y)-esp^2*y)
 }
 
 g = function(esp, y){
-  (1/esp**2)*(y*(1-y)**2+esp**2*(y-1))
+  (1/esp**2)*(y*(1-y)^2+esp^2*(y-1))
 }
 
 
 
-
-
-Likelihood = function(data_, T_, tau, esp=0.02){
+logLikelihood = function(data_, T_, tau, esp=0.02){
   
   #determination de la composante des oiseaux avant la mue
   data_0 = subset(data_, Moult_score==0)
   M = nrow(data_0)
   
   terme_0 = 1
-  for (m in 1:M){
-    terme_0 = terme_0 * (max(data_0$Date) < T_)
+  
+  if (M > 0){
+    for (m in 1:M){
+      terme_0 = terme_0 * (data_0$Date[m] < T_)
+    }
   }
-    
+
+  
+  
   #determination de la composante des oiseaux après la mue
   data_1 = subset(data_, Moult_score==1)
   P = nrow(data_1)
   
   terme_1 = 1
-  for (p in 1:P){
-    terme_1 = terme_1 * (min(data_1$Date) > T_+ tau)  
+  if (P > 0){
+    for (p in 1:P){
+      terme_1 = terme_1 * (data_1$Date[p] > T_+ tau)  
+    }
   }
   
   #determination de la composante des oiseaux pendant la mue
@@ -42,19 +47,28 @@ Likelihood = function(data_, T_, tau, esp=0.02){
   
   terme_01 = 1
   for (n in 1:N){
-    alpha = f(data_$Moult_score[n], esp)
-    beta = g(data_$Moult_score[n], esp)
-    terme_01 = terme_01*(max(data_0$Date) > T_)*(min(data_1$Date) < T_+ tau)*dbeta( (1/tau)*(data_01$Date-T_), alpha, beta, ncp = 0, log = FALSE)
+    alpha = f(esp, data_01$Moult_score[n])
+    beta = g(esp, data_01$Moult_score[n])
+    terme_01 = terme_01*(data_01$Date[n] > T_)*(data_01$Date[n] < T_+ tau)*dbeta( (1/tau)*(data_01$Date[n]-T_), alpha, beta, ncp = 0, log = FALSE)
     
   }
+
   
   L = terme_0*terme_1*terme_01
+
   
-  return(L)  
+  return(log(L))  
 }
 
 data_exo = dplyr::select(data_simul, Moult_score, Date)
 
 
-Likelihood(data_=data_exo, T_=45, tau=90, esp=0.02)
+logLikelihood(data_=data_exo, T_=50, tau=100, esp=0.02)
+logLikelihood(data_=data_exo, T_=45, tau=100, esp=0.02)
+logLikelihood(data_=data_exo, T_=50, tau=95, esp=0.02)
+
+ggplot(data_exo,
+       aes(x = Date,
+           y = Moult_score)) +
+  geom_point()
 

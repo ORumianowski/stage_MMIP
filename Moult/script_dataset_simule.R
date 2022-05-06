@@ -17,14 +17,14 @@ mu = 50
 
 # Coeffcients spécifiques audata_simul individus
 
-nb_ind = 100
+nb_ind = 1
 
-coef_ind = sample(-10:10, nb_ind, replace = TRUE)
+coef_ind = sample(0, nb_ind, replace = TRUE)
 
 
 # Coefficient associés audata_simul années de mesures
 
-coef_annee = sample(-3:3,5, replace = TRUE)*5
+coef_annee = sample(0,5, replace = TRUE)*5
 
 
 # Plan d'edata_simulpérience -------------------------------------------------------
