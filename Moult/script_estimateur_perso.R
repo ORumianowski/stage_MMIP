@@ -3,6 +3,11 @@ rm(list = ls()) # nettoyage de l'environnement de travail
 source("utils_packages.R")
 source("script_dataset_simule.R")
 
+ggplot(data_exo,
+       aes(x = Date,
+           y = Moult_score)) +
+  geom_point()
+
 
 f = function(esp, y){
   (1/esp**2)*(y^2*(1-y)-esp^2*y)
@@ -12,9 +17,13 @@ g = function(esp, y){
   (1/esp**2)*(y*(1-y)^2+esp^2*(y-1))
 }
 
+data_exo = dplyr::select(data_simul, Moult_score, Date)
 
 
-logLikelihood = function(data_, T_, tau, esp=0.02){
+NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
+  
+  tau = par[1]
+  T_ = par[2]
   
   #determination de la composante des oiseaux avant la mue
   data_0 = subset(data_, Moult_score==0)
@@ -57,18 +66,16 @@ logLikelihood = function(data_, T_, tau, esp=0.02){
   L = terme_0*terme_1*terme_01
 
   
-  return(log(L))  
+  return((-1)*log(L))  
 }
 
-data_exo = dplyr::select(data_simul, Moult_score, Date)
 
 
-logLikelihood(data_=data_exo, T_=50, tau=100, esp=0.02)
-logLikelihood(data_=data_exo, T_=45, tau=100, esp=0.02)
-logLikelihood(data_=data_exo, T_=50, tau=95, esp=0.02)
+NegLogLikelihood(data_=data_exo, c(100, 50), esp=0.02)
 
-ggplot(data_exo,
-       aes(x = Date,
-           y = Moult_score)) +
-  geom_point()
+
+optim(
+  par = c(95, 45),
+  fn = NegLogLikelihood
+)
 
