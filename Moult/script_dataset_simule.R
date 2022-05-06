@@ -36,7 +36,7 @@ coef_annee = sample(-3:3,2, replace = TRUE)*5
 
 # Les dates de prises de mesures
 
-coef_tj = sample(30:120,5, replace = TRUE)
+coef_tj = sample(30:120,10, replace = TRUE)
 
 
 # Création des données simulées -------------------------------------------

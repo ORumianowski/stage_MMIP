@@ -20,18 +20,19 @@ g = function(esp, y){
 
 data_exo = dplyr::select(data_simul, Moult_score, Date, Annee)
 
+nb_annee = data_exo$Annee %>%
+  unique() %>% 
+  length()
+  
+
 
 NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
   
   tau = par[1]
   T_ = par[2]
-
-  coef_annee_1 = par[3]
-  coef_annee_2 = par[4]
+  coef_annee = par[3:3+nb_annee-1]
   
-  coef_annee = c(coef_annee_1, coef_annee_2)
-  
-  A = 2 #length(coef_annee)
+  A = length(coef_annee)
   
   L = 1
   
@@ -79,16 +80,24 @@ NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
         terme_01 = terme_01*(data_01$Date[n] > Ta)*(data_01$Date[n] < Ta+ tau)*dbeta( (1/tau)*(data_01$Date[n]-Ta), alpha, beta, ncp = 0, log = FALSE)
         
       }
+      
       La = terme_0*terme_1*terme_01
       
       L = L*La
   
-    }
-  return((-1)*log(L))  
+  }
+  if (L>0){
+    return((-1)*log(L)) 
+  }
+  else {
+    return(10000000000000000000)
+  }
+
   }
 
 
-NegLogLikelihood(data_=data_exo, c(100, 50, 2,1), esp=0.02)
+NegLogLikelihood(data_=data_exo, par = c(tau=100, T_=50, coef_annee=c(0, 0)), esp=0.02)
+
 NegLogLikelihood(data_=data_exo, c(100, 50, 0,10), esp=0.02)
 
 
@@ -96,15 +105,22 @@ tau=100
 T_ = 50
 
 data_exo_0 = subset(data_exo, Moult_score==0)
-#max(data_exo_0$Date[data_exo_0$Date<T_])
+Tmin = max(data_exo_0$Date)
 
 
 data_exo_1 = subset(data_exo, Moult_score==1)
 #min(data_exo_1$Date[data_exo_0$Date>T_+tau])
 
+init_par = c(100, 50, rep(0, times=nb_annee))
+
 res_optim =optim(
-  par = c(100, 50, 0,0),
-  fn = NegLogLikelihood
+  par = init_par,
+  fn = NegLogLikelihood,
+  lower = c(0, 40, rep(-20, times=nb_annee)),
+  method = "L-BFGS-B"
 )
+
+##a priori, il n'y a aucune methodes d'estimation qui permet d'avoir un lower et qui gère les infinis
+
 
 res_optim$par
