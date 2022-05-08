@@ -86,12 +86,9 @@ NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
       L = L*La
   
   }
-  if (L>0){
-    return((-1)*log(L)) 
-  }
-  else {
-    return(10000000000000000000)
-  }
+  
+  return((-1)*log(L)) 
+
 
   }
 
@@ -113,11 +110,9 @@ data_exo_1 = subset(data_exo, Moult_score==1)
 
 init_par = c(100, 50, rep(0, times=nb_annee))
 
-res_optim =optim(
+res_optim = optim(
   par = init_par,
-  fn = NegLogLikelihood,
-  lower = c(0, 40, rep(-20, times=nb_annee)),
-  method = "L-BFGS-B"
+  fn = NegLogLikelihood
 )
 
 ##a priori, il n'y a aucune methodes d'estimation qui permet d'avoir un lower et qui gère les infinis

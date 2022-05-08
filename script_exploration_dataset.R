@@ -48,7 +48,7 @@ summary(reglm3)
 plot(modele, which = 1)
 library(emmeans)
 
-ggplot(data_antler,
+gplot(data_antler,
        aes(x = InvessResiduals,
            y = AgeAccelResiduals,
            color=AgeClass)) +

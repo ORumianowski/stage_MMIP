@@ -1,0 +1,43 @@
+---
+title: "Moult model beta"
+author: "RUMIANOWSKI 0."
+date: "08/05/2022"
+output: 
+  html_document:
+    theme: simplex
+    toc: yes 
+    toc_float: yes
+    code_folding: hide
+encoding: UTF-8
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Most birds, including passerines, moult all their feathers once a year. The standard field technique for recording the advancement of moult provides a score ranging from 0 to 1. To estimate moult parameters, Underhill & Zucchini (1989) proposed a general modeling framework with estimators implemented in the  R package ‘moult’  (Erni et al. 2013). Very recently, P. Boersch-Supan (2021) developed a method based on Bayesian inference which enables, inter alia, to integrate individual heterogeneity. 
+
+In this context, this work, as a student exercise, will try to implement an analog method with the additional integration of uncertainty on moult measurement. 
+
+
+#### General moult modeling framework 
+
+ $T$ is the number of days between a reference date and the onset of moult and $\tau$ the duration of moult. The moult score is assumed to increase linearly with time. For an individual, the moult score is encoded as $y$. In this framework, in case of active moult i.e. $t < T$ or $t > T + \tau$ , the following equality can be used: $$ y = (t - T)/\tau,       0< y <1$$
+
+#### Moult model with uncertainty on moult measurement
+
+The sample consists of $I$ individuals, measured over $A$ years and with $J$ measurements per year. For each individual, the specific onset is encoded as $T_{ia}$.
+
+Using the notation of Underhill and Zucchini (1988), samples are partitionned into three groups: $M$ pre-moult birds, $N$ birds in active moult, and $P$ post-moult birds. Birds in each category are observed on days $t$ = $t_1$,…,$t_I$; $u$ = $u_1$,…,$u_J$; $v$ = $v_1$,…,$v_K$, respectively. Moult scores for actively moulting birds, where available, are encoded as $y$ = $y_1$,…,$y_J$.
+
+The uncertainty on the measure of the moult Y will be apprehended by considering Y as a random variable following a Beta distribution with the following two properties: (i) $E(Y) = y$, (ii) $Var(Y) =  \epsilon^2$
+
+In this model the likelihood is: 
+$$ L (y, t | T, \tau)  = \prod_{i = 1}^{I} \prod_{a = 1}^{A} L (y_{iaj} | T_{ia}, \tau)$$
+
+
+
+$$ L (y_{iaj} | T_{ia}, \tau) =  \prod_{m = 1}^{M} 1_{t_{iaj} < T_{ia}}  \prod_{m = 1}^{N} 1_{t_{iaj} > T_{ia}}   1_{v_{iaj} < T_{ia} + \tau} f_\beta(y_{iaj}, u_{iaj})  \prod_{m = 1}^{P} 1_{v_{iaj} > T_{ia} + \tau} $$
+
+
