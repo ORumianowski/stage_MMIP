@@ -4,10 +4,11 @@ source("script_pretraitement_data_antler.R")
 source("script_standardisation_antler.R")
 source("script_determination_ageaccel.R")
 
+vis_miss(data_antler)
 
 data_antler_complet = dplyr::select(data_antler, 
                                     Pop_Id, Year, Day, 
-                                    Cohort, Cohort_Type, Population, 
+                                    Cohort, Cohort_Type, Cohort_Quality_Pop, Population, 
                                     Age, Age_2, Age_log, AgeClass,
                                     Weight, AntlerLength, InvessResiduals,
                                     DNAmAge, AgeAccelLOO, ProblemDNA,
@@ -20,11 +21,10 @@ data_antler_complet = dplyr::select(data_antler,
          Weight_log = log(Weight)) %>% 
   na.omit()
 
-reg_lm_full <- glmer(Cohort_Type ~ scale(Antler_std_log) + scale(Weight_log) +
+reg_lm_full <- lm(Cohort_Quality_Pop ~ scale(Antler_std_log) + scale(Weight_log) +
                        Population +
                       InvessResiduals + AgeAccelResiduals +
-                        scale(Antler_std_log):Population + scale(Antler_std_log):scale(Weight_log) +
-                      (1|Cohort),  family= binomial,
+                        scale(Antler_std_log):Population + scale(Weight_log):Population + scale(Antler_std_log):scale(Weight_log),
                     data=data_antler_complet)
 
 
@@ -39,29 +39,37 @@ par(mar = c(3,5,6,4))
 plot(ms_full, labAsExpr = TRUE)
 
 
-reg_lm_full <- glmer(Cohort_Type ~ Antler_std_log + Weight_log +
-                        Antler_std_log:Weight_log +
-                       (1|Cohort),  family= binomial,
-                     data=data_antler_complet) 
+reg_lm_full_1 <- lm(scale(Cohort_Quality_Pop) ~ scale(Weight_log) + Population,  
+                     data=data_antler_complet)
+reg_lm_full_1 %>% 
+  summary()
 
-
-reg_lm_full %>% 
+reg_lm_full_2 <- lm(scale(Cohort_Quality_Pop) ~ scale(Weight_log) + Population +
+                      + scale(Weight_log):Population ,  
+                    data=data_antler_complet)
+reg_lm_full_2 %>% 
   summary()
 
 
-reg_lm_full <- glmer(Cohort_Type ~ scale(Antler_std_log) + scale(Weight_log) +
-                       scale(Antler_std_log):scale(Weight_log) +
-                       (1|Cohort),  family= binomial,
-                     data=data_antler_complet) 
-newdata = expand.grid(A)
+
+ggplot(data_antler_complet,
+              aes(x = scale(Weight_log),
+                  y = scale(Cohort_Quality_Pop),
+                  color=Population)) +
+  geom_point()
+
+
+
+
 predict(reg_lm_full)
+
 modele_glm_fixe = data_antler_complet %>% 
   select(Antler_std_log, Weight_log, Cohort_Type, Cohort) %>% 
   mutate_if(is.numeric, function(x) (x - mean(x)) / sd(x)) %>% 
   as.data.frame() %>% 
-  glmer(Cohort_Type ~ Antler_std_log + Weight_log + Antler_std_log:Weight_log) + 
-        +(1|Cohort),
-      family = binomial(), data = .) 
+  glmer(Cohort_Type ~ Antler_std_log + Weight_log + Antler_std_log:Weight_log + 
+        + (1|Cohort),
+      family = binomial, data = .) 
 
 newdata = expand.grid(Antler_std_log = seq(-5, 5, length.out = 101),
                       Weight_log = seq(-5, 5, length.out = 101),
@@ -74,8 +82,6 @@ newdata %>%
   facet_wrap(~ Cohort) +
   scale_fill_viridis_c()
 
-reg_lm_full %>% 
-  summary()
 
 ggplot(data_antler_complet,
        aes(x = scale(Antler_std_log),
@@ -85,14 +91,13 @@ ggplot(data_antler_complet,
 
 
 data_antler_ACP = dplyr::select(data_antler_complet, 
-                                    Cohort, Cohort_Type,
+                                    Cohort, Cohort_Type, Cohort_Quality_Pop,
                                     Weight,
                                     Antler_std) %>% 
   na.omit()
 
 
-library("FactoMineR")
-library("factoextra")
+
 
 
 resPCA <- PCA(data_antler_ACP[, c("Weight", "Antler_std")], scale.unit = TRUE, ncp = 6, graph = FALSE)
@@ -105,15 +110,13 @@ data_antler_complet <- mutate(data_antler_complet,
   Taille=resPCA$ind$coord[,1],
   InvessACP=resPCA$ind$coord[,2])
 
-Plot = ggplot(data_antler_complet,
+ggplot(data_antler_complet,
        aes(x = Taille,
            y = InvessACP,
            color=Cohort_Type)) +
   geom_point()
 
-ggMarginal(Plot, type = "histogram", 
-           groupColour = TRUE,
-           groupFill = TRUE)
+
 
 
 reg_lm_full <- glm(Cohort_Type ~ Taille ,  family= binomial,
@@ -124,33 +127,9 @@ reg_lm_full %>%
   summary()
 
 
-reg_lm_full <- glmer(Cohort_Type ~ Taille +
-                       (1|Cohort),  family= binomial,
+reg_lm_full <- lm(Cohort_Quality_Pop ~ Taille,
                      data=data_antler_complet) 
 
 reg_lm_full %>% 
   summary()
-
-
-
-reg_lm_full <- glm(Cohort_Type ~ InvessResiduals ,  family= binomial,
-                   data=data_antler_complet) 
-
-
-reg_lm_full %>% 
-  summary()
-
-
-reg_lm_full <- glmer(Cohort_Type ~ InvessResiduals +
-                       (1|Cohort),  family= binomial,
-                     data=data_antler_complet) 
-
-reg_lm_full %>% 
-  summary()
-
-ggplot(data_antler_complet,
-       aes(x = Taille,
-           y = InvessACP,
-           color=Cohort)) +
-  geom_point()
 

@@ -23,8 +23,6 @@ data_exo = dplyr::select(data_simul, Moult_score, Date, Annee)
 nb_annee = data_exo$Annee %>%
   unique() %>% 
   length()
-  
-
 
 NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
   
@@ -32,7 +30,7 @@ NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
   T_ = par[2]
   coef_annee = par[3:3+nb_annee-1]
   
-  L = 1
+  L = 0
   A = length(coef_annee)
   
   for (a in 1:A){
@@ -45,11 +43,11 @@ NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
       data_0 = subset(data_annee_a, Moult_score==0)
       M = nrow(data_0)
       
-      terme_0 = 1
+      terme_0 = 0
       
       if (M > 0){
         for (m in 1:M){
-          terme_0 = terme_0 * (data_0$Date[m] < Ta)
+          terme_0 = terme_0 + log( (data_0$Date[m] < Ta) )
         }
       }
     
@@ -59,10 +57,10 @@ NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
       data_1 = subset(data_annee_a, Moult_score==1)
       P = nrow(data_1)
       
-      terme_1 = 1
+      terme_1 = 0
       if (P > 0){
         for (p in 1:P){
-          terme_1 = terme_1 * (data_1$Date[p] > Ta+ tau)  
+          terme_1 = terme_1 + log( (data_1$Date[p] > Ta+ tau) )  
         }
       }
       
@@ -70,34 +68,36 @@ NegLogLikelihood = function(par, data_=data_simul, esp=0.02){
       data_01 = subset(data_annee_a, Moult_score > 0 & Moult_score < 1)
       N = nrow(data_01)
       
-      terme_01 = 1
+      terme_01 = 0
       for (n in 1:N){
         alpha = f(esp, data_01$Moult_score[n])
         beta = g(esp, data_01$Moult_score[n])
-        terme_01 = terme_01*(data_01$Date[n] > Ta)*(data_01$Date[n] < Ta+ tau)*dbeta( (1/tau)*(data_01$Date[n]-Ta), alpha, beta, ncp = 0, log = FALSE)
-        
-      }
-      print(terme_0)
-      print(terme_1)
-      print(terme_01)
-      La = terme_0*terme_1*terme_01
+        terme_01_m = log((data_01$Date[n] > Ta))+log((data_01$Date[n] < Ta+ tau))
+        print(terme_01_m)
+        terme_01_m = terme_01_m + log( dbeta( (1/tau)*(data_01$Date[n]-Ta), alpha, beta, ncp = 0, log = FALSE) )
+        print(terme_01_m)
+        terme_01 = terme_01+ terme_01_m
       
-      L = L*La
+      }
+      
+      La = terme_0+terme_1+terme_01
+      
+      L = L+La
   
   }
   
-  return((-1)*log(L)) 
+  return((-1)*L) 
 
 
   }
 
-
-NegLogLikelihood(data_=data_exo, rep(0, times=nb_annee), esp=0.02)
-
-
+NegLogLikelihood(data_=data_exo, par = c(100, 50, -5,5,0), esp=0.02)
 
 
 init_par = c(100, 50, rep(0, times=nb_annee))
+
+NegLogLikelihood(data_=data_exo, par = init_par, esp=0.02)
+
 
 res_optim = optim(
   par = init_par,

@@ -4,7 +4,6 @@ library(moult)
 # Chargement du jeu de données --------------------------------------------
 
 
-
 # Paramètres de simulation ------------------------------------------------
 
 # Durée de la mue
@@ -24,7 +23,7 @@ coef_ind = sample(0, nb_ind, replace = TRUE)
 
 # Coefficient associés audata_simul années de mesures
 
-coef_annee = sample(-3:3,2, replace = TRUE)*5
+coef_annee = sample(0,2, replace = TRUE)*5
 
 
 # Plan d'edata_simulpérience -------------------------------------------------------
