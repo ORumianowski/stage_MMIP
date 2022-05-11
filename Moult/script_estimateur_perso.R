@@ -157,3 +157,94 @@ newdata %>%
   scale_fill_viridis_c()
 
 
+
+# méthode acceptation-rejet -----------------------------------------------
+
+
+
+f_ = function(data_, T_, tau, esp=0.02){
+  
+  data_01 = subset(data_, Moult_score > 0 & Moult_score < 1)
+  
+  calcul_terme_n = function(score_, date_) {
+    expected_score = (1 / tau) * (date_ - T_)
+    alpha = f(esp, expected_score)
+    beta = g(esp, expected_score)
+    return(log(dbeta(score_, alpha, beta)))
+  }
+  
+  calcul_terme_global =  function(data_01_){
+    sum(map2_dbl(data_01_$Moult_score, data_01_$Date, calcul_terme_n))
+  } 
+  
+  calcul_terme_global(data_01)
+
+}
+
+
+f_(data_exo, T_=50, tau=100)
+
+
+
+
+  
+g_ = function(data_, T_, tau){
+  
+  data_0 = subset(data_, Moult_score == 0)
+  data_1 = subset(data_, Moult_score == 1)
+  data_01 = subset(data_, Moult_score > 0 & Moult_score < 1)
+  
+  min_T_ = max(data_0$Date)
+  max_T_ = min(data_01$Date)
+  
+  min_tau = max(data_01$Date)-min(data_01$Date)
+  max_tau = 366
+  
+  terme1 = (1/(max_T_-min_T_)) * (min_T_ < T_ & T_ < max_T_) 
+  terme2 = (1/(max_tau-min_tau)) * (min_tau < tau & tau < max_tau) 
+  
+  return(log(terme1*terme2))
+}
+
+g_(data_exo, T_=50, tau=100)
+
+to_optim = function(pars, data_=data_exo){
+  T_ = pars[1]
+  tau = pars[2]
+  return(-f_(data_, T_, tau)-g_(data_, T_, tau))
+}
+
+
+res_optim = optim(par = c(50,120) , fn = to_optim )
+
+res_optim$par
+res_optim$value
+
+M = (-res_optim$value) %>% 
+  exp()
+M
+
+get_a_sample = function(T_, tau, M_=M, data_=data_exo){
+  condition = FALSE
+  while(!condition){
+    y = g_(data_, T_, tau)
+    u = runif(1)
+    condition = u <= f_(data_, T_=50, tau=100)/ (M_*g_(data_, T_, tau))
+  }
+  return(y)
+}
+
+get_a_sample(T_ = 50, tau = 100)
+
+
+
+
+
+
+
+
+
+
+
+
+
