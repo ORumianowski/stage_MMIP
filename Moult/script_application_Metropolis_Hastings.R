@@ -9,11 +9,11 @@ data_exo = subset(data_simul, Annee==1) %>%
 
 
 f = function(esp, y){
-  (1/esp**2)*(y^2*(1-y)-esp^2*y)
+  abs((1/esp**2)*(y^2*(1-y)-esp^2*y))
 }
 
 g = function(esp, y){
-  (1/esp**2)*(y*(1-y)^2+esp^2*(y-1))
+  abs((1/esp**2)*(y*(1-y)^2+esp^2*(y-1)))
 }
 
 
@@ -68,15 +68,17 @@ get_prior <- function(data_=data_exo, T_, tau){
   
   min_tau = max(data_01$Date)-min(data_01$Date)
   max_tau = 366
-  ##pour quelle densité?
-  dunif(T_, min = min_T_, max = max_T_, log=TRUE) + dunif(tau, min = min_tau, max = max_tau, log=TRUE) %>% 
+  
+  dunif(T_, min = min_T_, max = max_T_, log=TRUE) + 
+    dunif(tau, min = min_tau, max = max_tau, log=TRUE) %>% 
     return()
 }  
 
 get_prior(T_=50, tau =100)
 
-get_posterior <- function(T_, tau, data_=data_exo){
-  log_posterior <- get_prior(T_, tau, data_=data_exo) + get_likelihood(T_, tau, data_=data_exo)
+get_posterior <- function(T_, tau, data__=data_exo){
+  log_posterior <- get_prior(T_, tau, data_ = data__) + 
+    get_likelihood(T_, tau, data_ = data__)
   return(log_posterior)
 }
 
@@ -84,8 +86,8 @@ get_posterior(T_=50, tau =100)
 
 
 get_metropolis_sampling <- function(pars_init, # Premières valeurs 
-                                    n_step # Nombre d'iterations
-                                    ){
+                                    n_step, # Nombre d'iterations
+                                    step_size = 1){
   T_init = pars_init[1]
   tau_init = pars_init[2]
   
@@ -103,7 +105,7 @@ get_metropolis_sampling <- function(pars_init, # Premières valeurs
     stop("First log posterior value is infinite, change pars_init")
   }
   for(i in 1:n_step){
-    candidate <- rnorm(2, out[i, ], sd = 1) # On tire Z ########## explication necessaire!
+    (candidate <- rnorm(2, out[i, ], sd = step_size)) # On tire Z ########## explication necessaire!
     # Calcul de pi(Z | X, y)
     candidate_log_posterior <- get_posterior(T_=candidate[1], tau = candidate[2])
     log_u <- log(runif(1)) # En log aussi!
@@ -129,13 +131,25 @@ get_metropolis_sampling <- function(pars_init, # Premières valeurs
 
   
 
+data_  = data_exo
+data_0 = subset(data_, Moult_score == 0)
+data_1 = subset(data_, Moult_score == 1)
+data_01 = subset(data_, Moult_score > 0 & Moult_score < 1)
+
+min_T_ = max(data_0$Date)
+max_T_ = min(data_01$Date)
+
+min_tau = max(data_01$Date)-min(data_01$Date)
+max_tau = 366
+
+
 pars_init = c(34,115)
-n_step = 1000
+n_step = 10000
 
-get_metropolis_sampling(pars_init, n_step)
+# get_metropolis_sampling(pars_init, n_step)
 
-
-premier_mcmc <- get_metropolis_sampling(pars_init,n_step) 
+set.seed(123)
+premier_mcmc <- get_metropolis_sampling(pars_init,n_step, step_size = 1e-1) 
 
 
 premier_mcmc %>%
@@ -148,7 +162,13 @@ premier_mcmc %>%
   labs(y = "Valeur échantillonnée", x = "Iteration",
        title = "Echantillons a posteriori") 
 
-burn_in = 200
+premier_mcmc %>%
+  ggplot(aes(x = T_, y = tau)) +
+  geom_path() +
+  geom_point()
+
+
+burn_in = 250
 premier_mcmc_sample = premier_mcmc[-(1:burn_in), ]
 
 ggplot(premier_mcmc_sample) +
