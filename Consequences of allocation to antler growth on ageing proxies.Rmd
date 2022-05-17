@@ -1,0 +1,640 @@
+---
+title: "Consequences of allocation to antler growth on ageing proxies"
+author: "RUMIANOWSKI 0."
+date: "16/05/2022"
+output: 
+  html_document:
+    theme: simplex
+    toc: yes 
+    toc_float: yes
+    code_folding: hide
+encoding: UTF-8
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+```{r}
+rm(list = ls()) # nettoyage de l'environnement de travail
+
+
+# Chargement du jeu de données --------------------------------------------
+
+library(readxl) # pour charger les fichiers excel
+library(tidyr)
+library(tibble)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(lme4)
+library(naniar)
+library(UpSetR)
+library(corrplot)
+library(stringr)
+library(emmeans)
+library(cowplot)
+
+```
+### MATERIALS AND METHODS
+
+#### Study populations
+
+We sampled roe deer living in two enclosed forests with markedly different environmental contexts: Trois-Fontaines (TF) and Chizé (CH). The Trois-Fontaines forest (1360 ha) is located in northeastern France (48°43'N, 4°55'E) and is characterized by a continental climate, moderately severe winters and warm and rainy summers. This site has rich soils and provides high quality habitat for roe deer (Pettorelli et al., 2006). In contrast, the Chizé forest (2614 ha) is located in western France (46°50'N, 0°25'W) and is characterized by temperate oceanic climate with Mediterranean influences. This site has a low productivity due to poor quality soils and frequent summer droughts (Pettorelli et al., 2006), and thereby provides a quite poor habitat for roe deer in most years. Individuals from these two populations have been intensively monitored using a long-term Capture-Mark-Recapture programme since 1975 and 1977 (for Trois-Fontaines and Chizé, respectively). At each site, 10–12 days of capture using drive-netting are organized every year between December and March (see Gaillard et al., 1993 for details on capture sessions), which allows capturing and measuring about half of the population every year. Once a roe deer is captured, its sex and body mass (to the nearest 50 g) are recorded and a basic clinical examination is performed. All individuals included in our analyses were of known age because they were either caught as newborn in spring (see Delorme et al., 1988 for further details) or as ca. 8 months old during winter captures, when they still have their milk teeth (most often incisors and always premolars, Flerov, 1952). Individuals are equipped with individually recognizable ear-tags and collars (either numbered, VHF or GPS collars), get a unique id, and are closely monitored throughout their lifetime using subsequent winter captures and observations in the field.
+
+#### DNA methylation data
+
+We generated DNA methylation data using the custom Illumina chip "HorvathMammalMethylChip40". The mammalian methylation array is attractive because it provides very high coverage of highly conserved CpGs in mammals (Arneson et al., 2021). Each probe is designed to cover a certain subset of species, such that overall all species have a high number of probes (Arneson et al., 2021). The particular subset of species for each probe is provided in the chip manifest file can be found at Gene Expression Omnibus (GEO) at NCBI as platform GPL28271 and on the GitHub page reported in our section on data availability. The SeSaMe normalization method was used to define beta values (methylation levels) for each CpG (Zhou et al., 2018). The SeSaMe normalization applies to one sample at a time.
+
+```{r}
+data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
+  mutate(PlateNumber = as.factor(PlateNumber), 
+         Batch_number = as.factor(Batch_number),
+         ProblemDNA_Concentration = as.factor(ProblemDNA_Concentration),
+         PlateTelomere  = as.factor(PlateTelomere),
+         DNAmAgeLOO = as.numeric(DNAmAgeLOO),
+         `AgeAccelLOO(ComputedUCLA)` = as.numeric(`AgeAccelLOO(ComputedUCLA)`),
+         RightAntlerLength    = str_remove(RightAntlerLength, "_broken") %>% 
+           as.numeric(),
+         AntlerLength = map2_dbl(.x = Left_AntlerLength, 
+                                 .y = RightAntlerLength,
+                                 .f = function(x, y){
+                                   if(is.na(x))
+                                     return(y)
+                                   else if(is.na(y))
+                                     return(x)
+                                   else
+                                     return(max(x, y))
+                                 }
+         ),
+         AgeClass = cut(Age, breaks = c(0,1,4,8,25)) %>% 
+           as.character(),
+         Age_2 = Age**2,
+         Age_log = log((Age)),
+         Cohort = factor(Cohort)) %>% 
+  rename(Year = YearCapture,
+         Day = JulianCaptureDate,
+         Cohort_Type = `Cohort_Quality_Type(Good/Bad)`,
+         DNAmAge = DNAmAgeLOO,
+         AgeAccelLOO = `AgeAccelLOO(ComputedUCLA)`,
+         Weight = WeightAnimal.kg,
+         ProblemDNA  = ProblemDNA_Concentration,
+         RTL = QC_RTL) %>% 
+  select(Pop_Id, Year, Day, 
+         Cohort, Cohort_Type, Population, 
+         Age, Age_2, Age_log, AgeClass, Weight, AntlerLength, AntlerType,
+         RTL, DNAmAge, AgeAccelLOO, ProblemDNA)
+
+
+```
+
+
+
+```{r}
+# Problem with the sample
+data_antler = data_antler[-which(data_antler$Pop_Id=="CM2301" & data_antler$Year=="2016") , ]
+# Problem with the sample (Female)
+data_antler = data_antler[-which(data_antler$Pop_Id=="TM368" & data_antler$Year=="2018") , ]
+# Unmeasured Antler Length
+data_antler = data_antler[-which(data_antler$Pop_Id=="CM2317" & data_antler$Year=="2016") , ]
+data_antler = data_antler[-which(data_antler$Pop_Id=="TM3069" & data_antler$Year=="2018") , ]
+
+
+data_antler_used_std =select(data_antler, 
+    Pop_Id, 
+    Year,
+    Day,
+    AntlerLength,
+    AntlerType,
+    AgeClass,
+    Population) 
+```
+
+#### How to measure allocation to antler growth
+
+Antlers grow each year from the end of November until early March (i.e. before the velvet is shed).  Roe deer are in hard antler until the end of October/early November when	 they cast their antlers (Sempéré & Boissin, 1981). During their first year of life, males develop a small “button” (i.e. a very short	antler	with	a	round	 top	instead	of	a	spike)	on	top	of	their	pedicle	before	growing	their	 first	full	antlers	 at	1	year	 of	age	 (Figure	1).	Then,	males	generally	 develop	a	four- 	point	(in	yearlings) 	or	five- 	/six-	point	(in	adults) 	 head.	 Antler	 length	 was	 measured	 to	the	 nearest	 0.5	cm	along 	 the	 external	 side	 of	the	 main	 beam,	 from	 the	 base	 of	the	 antler	 to	the	 top	 of	the	 main	 beam	 (Vanpé	 et	al.,	 2007).	 Antler	 length	 was	used	as	a	proxy	for	allocation	to	antler	growth	because	there	 is	a	strong	 covariation	 among	 the	 different	 antler	 traits	 in	deer 	 (Lemaître	et	al.,	 2014).	 When	an	individual	 was	caught	more	than	 once	in	a	given	year,	only	the	last	measure	was	considered.	When	 both	antlers	were	intact,	the	average	length	was	computed	and	retained	for	the	analyses.	When	one	antler	was	broken,	the	value	of	 the	remaining	intact	antler	was	retained.	When	both	antlers	were	 broken,	 the	 individual	 was	 removed	 from	 the	 dataset.	 
+
+To obtain a measure of antler length independante the date of capture, we used a standardization method used by Lemaître (Lemaître	et	al.,	 2018). We	 analysed	 the	relationship	 between	 antler	 length	 and	the	Julian	date	of	capture	(with	1	December	as	day	0).	As	antler	 growth	is	a	nonlinear	process	(Goss,	1983),	we	fitted	different	functions	to	assess	reliably	the	shape	of	the	relationship	between	antler	 length	(log-	transformed)	and	date	of	capture :	constant,	 linear,	 a	threshold	 function	 with	 one	 slope	 (i.e.	 antler	 length	 increasing	 linearly	 with	 date	 of	capture	 until	 reaching	 a	plateau	 at	 a	given	 date)	 and	 a	threshold	 function	 with	 two	 slopes	 (i.e.	 antler	 length	increasing	linearly	with	date	of	capture	until	a	given	date	and	 then	increasing	further,	but	with	a	different	slope).	To	estimate	these	 threshold	 values,	 the	deviance	 profile	 of	the	models	 including	 the	 slopes	was	used	and	the	date	 of	capture	 providing	the	lowest	 deviance	was	selected	as	the	threshold	 value	(Ulm	&	Cox,	1989).	Model	 selection	was	based	on	the	Akaike	 Information	Criterion	(AIC).
+
+
+The models are tested on the data by discriminating according to the population of origin and whether the measurement was performed on a first year or not i.e. partitioning the dataset into four. Measurements made on individuals with dry wood were removed from the analysis. The raw measurement will be used directly as a standard measurement. Measurements made on individuals with antlers smaller than 1cm were removed from the analysis. The raw measurement will be used directly as a standard measurement.In order to retain as much data as possible, measurements of antlers where the antler condition is unknown were included in the standardization process.The AIC and graph analysis reveal that the linear model is the best fit, except for the group of adults from Chizé where the best model corresponds to the constant function. For this group, the raw measure will be directly used as the standard measure.
+
+
+
+```{r}
+
+n = 1000
+X = abs(rnorm(n))
+Y = rnorm(length(X), sd = .5)
+
+
+
+# Fonctions de standardisation --------------------------------------------
+
+DATE_REF = 60
+
+std_antler = function(antler_length, date, pars, date_ref = DATE_REF) {
+  a = pars[1]
+  b = pars[2]
+  (antler_length - (a * date + b))  + a * date_ref + b
+}
+
+# Définition des fonctions de modélisation de la longueur des bois --------
+
+# fonction constante
+
+constante = function(pars, x) {
+  a = pars[1]
+  
+  a
+}
+
+# fonction linéaire
+
+lineaire = function(pars, x = 0) {
+  a = pars[1]
+  b = pars[2]
+  
+  a * x + b
+}
+
+# fonction de seuil avec une pente et un plateau
+
+one_slope = function(pars, x) {
+  a = pars[1]
+  b = pars[2]
+  seuil = pars[3]
+  
+  ifelse(x < seuil, a * x + b, a * seuil + b)
+}
+
+# fonction de seuil avec deux pentes
+
+two_slopes = function(pars, x) {
+  a = pars[1]
+  b = pars[2]
+  seuil = pars[3]
+  c = pars[4]
+  OO_2 = (a - c) * seuil + b
+  
+  ifelse(test = x < seuil,
+         yes = a * x + b,
+         no = c * x + OO_2)
+}
+```
+
+
+```{r}
+
+# Fonction d'optimisation par MV ------------------------------------------
+
+plan_experience = tibble(
+  ma_fonction = c(constante, lineaire, one_slope, two_slopes),
+  initial_pars = list(c(0, 1), c(1, 0, 1), c(1, 0, 1, 1), c(1, 0, 0, 2, 1))
+)
+
+NLL = function(pars,
+               ma_fonction,
+               y = Y,
+               x = X) {
+  # Values predicted by the model
+  sigma = pars[length(pars)]
+  parametres_moyenne = pars[-length(pars)]
+  Gpred = ma_fonction(parametres_moyenne, x)
+  # Negative log-likelihood 
+  -sum(dnorm(
+    x = y,
+    mean = Gpred,
+    sd = sigma,
+    log = TRUE
+  ))
+}
+
+get_AIC = function(initial_pars,
+                   ma_fonction,
+                   y = Y,
+                   x = X) {
+  neg_log_lik = optim(
+    par = initial_pars,
+    fn = function(p)
+      NLL(
+        p,
+        ma_fonction = ma_fonction,
+        y = Y,
+        x = X
+      ),
+    hessian = TRUE
+  )$value
+  2 * neg_log_lik + 2 * length(initial_pars)
+}
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+```
+
+```{r, , fig.height=3, fig.width=4, echo = FALSE}
+
+# Application aux données réelles -----------------------------------------
+
+# CHIZE -------------------------------------------------------------------
+
+# Premiere classe ---------------------------------------------------------
+
+data_antler_2 = subset(data_antler_used_std, AntlerType == "BV" | is.na(AntlerType)) %>%
+  subset(AgeClass == "(0,1]" & Population == "C" & AntlerLength > 1) # Les bois inf. à 1 sont considérer comme invariants
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+
+ggplot(data_antler_2,
+       aes(x = X,
+           y = Y,
+           color = AntlerType)) +
+  geom_point() +
+  
+  geom_abline(slope = optim_output$par[1],
+              intercept = optim_output$par[2],
+              colour = "red")+
+  labs( title = "Chizé - 1A",
+        x= "Julian Capture Date",
+        y= "Antler Length (log)")
+
+
+data_antler_3 = mutate(data_antler_2,
+                       Antler_std = exp(std_antler(
+                         log(AntlerLength), Day, optim_output$par
+                       )))
+
+
+data_antler_1C = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+
+
+# Classes supérieures -----------------------------------------------------
+
+
+data_antler_2 = subset(data_antler_used_std, AntlerType == "BV"| is.na(AntlerType)) %>%
+  subset(AgeClass != "(0,1]" & Population == "C") 
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+
+optim_output = optim(
+  par = c(0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = constante,
+      y = Y,
+      x = X
+    )
+)
+
+
+ggplot(data_antler_2,
+       aes(x = X,
+           y = Y,
+           color = AntlerType)) +
+  geom_point() +
+  
+  geom_abline(slope = 0,
+              intercept = optim_output$par[1],
+              colour = "red")  +
+  labs( title = "Chizé - +1A",
+        x= "Julian Capture Date",
+        y= "Antler Length (log)")
+
+
+data_antler_3 = mutate(data_antler_2,
+                       Antler_std = AntlerLength)
+
+
+data_antler_NC = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+
+# Trois Fontaines ---------------------------------------------------------
+
+# Premiere classe ---------------------------------------------------------
+
+data_antler_2 = subset(data_antler_used_std,AntlerType == "BV" | is.na(AntlerType)) %>%
+  subset(AgeClass == "(0,1]" & Population == "TF") 
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+
+ggplot(data_antler_2,
+       aes(x = X,
+           y = Y,
+           color = AntlerType)) +
+  geom_point() +
+  
+  geom_abline(slope = optim_output$par[1],
+              intercept = optim_output$par[2],
+              colour = "red")+
+  labs( title = "Trois-Fontaines - 1A",
+        x= "Julian Capture Date",
+        y= "Antler Length (log)")
+
+
+data_antler_3 = mutate(data_antler_2,
+                       Antler_std = exp(std_antler(
+                         log(AntlerLength), Day, optim_output$par
+                       )))
+
+
+data_antler_1TF = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+
+
+# Classes supérieures -----------------------------------------------------
+
+
+data_antler_2 = subset(data_antler_used_std, AntlerType == "BV" | is.na(AntlerType)) %>%
+  subset(AgeClass != "(0,1]" & Population == "TF") 
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+
+ggplot(data_antler_2,
+       aes(x = X,
+           y = Y,
+           color = AntlerType)) +
+  geom_point() +
+  
+  geom_abline(slope = optim_output$par[1],
+              intercept = optim_output$par[2],
+              colour = "red")+
+  labs( title = "Trois-Fontaines - +1A",
+        x= "Julian Capture Date",
+        y= "Antler Length (log)")
+
+
+data_antler_3 = mutate(data_antler_2,
+                       Antler_std = exp(std_antler(
+                         log(AntlerLength), Day, optim_output$par
+                       )))
+
+data_antler_NTF = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+
+data_antler_std = rbind(data_antler_1C,
+                        data_antler_NC,
+                        data_antler_1TF,
+                        data_antler_NTF)
+
+data_antler_complet <-  merge(data_antler_used_std, data_antler_std, by=c("Pop_Id", "Year"), all.x = TRUE)
+
+
+# Traitement des cas Antler_Type==BD  & AntlerLength <= 1 --------------------
+
+for (k in 1:nrow(data_antler_complet)){
+  if (!is.na(data_antler_complet[k, "AntlerType"])){
+    if (data_antler_complet[k, "AntlerType"] == "BD"){ 
+      data_antler_complet[k, "Antler_std"] = data_antler_complet[k, "AntlerLength"]
+    }
+  }
+  if (data_antler_complet[k, "AntlerLength"] <= 1){
+    data_antler_complet[k, "Antler_std"] = data_antler_complet[k, "AntlerLength"]
+  }
+}
+
+data_antler_complet <- data_antler_complet[,c("Pop_Id", "Year", "Antler_std")]
+data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), all.x = TRUE)
+
+```
+
+#### How to measure epigenetic age acceleration
+
+Because methylation dynamics are more active during development, epigenetic age does not evolve in a linear fashion. Following Horvath (2013), we computed the epigenetic acceleration as the residuals of the models that best described the relationship between DNAm age and chronological age.  Four functions were proposed and we used a tenfold cross validation to compare them. The model with a simple logarithmic component was selected. The different functions	were: 
+$$ f_1(Age) = \alpha + \beta \times Age $$ 
+$$ f_2(Age) = \alpha \times log(Age+1) + \beta * Age $$ 
+$$ f_3(Age) = \alpha \times log(Age+1), Age < adult.age $$
+$$ f_3(Age) =\beta \times \frac{ (Age-adult.age)}{adult.age + 1} + \alpha \times log(adult.age+1) , Age>adult.age $$
+
+$$ f_4(Age) = \alpha \times Age + \beta \times Age^2 $$ 
+
+
+
+```{r}
+rm(list = ls()) # nettoyage de l'environnement de travail
+source("utils_packages.R")
+source("script_pretraitement_data_antler.R")
+```
+```{r}
+
+data_antler = select(data_antler, Age,  DNAmAge) %>% 
+  na.omit()
+
+# Definition de la fonction de cout pour n'importe quel predicteur
+
+cost_function <- function(parametre, predicteur, my_data = data_antler){
+  sum(map2_dbl(.x = my_data$Age, .y = my_data$DNAmAge, function(x, y) (y - predicteur(parametre, x))^2))
+}
+
+
+# Predicteur Lineaire ---------------------------------------------------------
+
+predicteur_Lineaire <- function(parametre, Age){
+  alpha = parametre[1]
+  beta <- parametre[2]
+  
+  alpha + beta * Age
+}
+
+
+# Predicteur log -------------------------------------------------------
+
+
+predicteur_log <- function(parametre, Age){
+  alpha = parametre[1]
+  beta <- parametre[2]
+  
+  alpha * log(Age+1) + beta * Age
+}
+
+
+# Prédicteur Horvath ------------------------------------------------------
+
+predicteur_Horvath = function(parametre, Age){
+  
+  alpha = parametre[1]
+  beta <- parametre[2]
+  adult.age <- parametre[3]
+  
+  
+  alpha * log(Age+1) * (Age < adult.age) +
+    (beta * (Age-adult.age)/(adult.age + 1) + alpha * log(adult.age+1)) * (Age>=adult.age)
+  
+}
+
+
+# Prédicteur Quadratic ------------------------------------------------------
+
+predicteur_Quadratic = function(parametre, Age){
+  
+  alpha = parametre[1]
+  beta <- parametre[2]
+  adult.age <- parametre[3]
+  
+  
+  alpha * Age + beta * Age**2
+}
+
+# Representation graphique ------------------------------------------------
+
+optimization_function = function(mon_predicteur, nb_par, nb_replicates = 10){
+  rerun(nb_replicates,# On fait tourner nb_replicates fois le meme traitement
+        {
+          param = runif(nb_par, 0, 4) # Generation aleatoire du param initial
+          # Optimisation a partir de ce parametre
+          res_optim = optim(param, predicteur = mon_predicteur, 
+                            cost_function, method = "Nelder-Mead")
+          # Aggregation des resultats dans un tableau
+          tibble(value = res_optim$value, par =  list(res_optim$par))
+        }) %>% 
+    bind_rows() %>% # Aggrege dans un tableau
+    filter(value == min(value)) %>% # Filtre sur ceux qui atteignent le minimum
+    slice(1) %>% # Prend la premiere ligne
+    pull(par) %>% # On prend le parametre
+    unlist() # On le met en vecteur
+}
+```
+```{r}
+
+cv_function = function(my_prop = 0.7, nb_replicates = 100){
+  rerun(nb_replicates,# On fait tourner nb_replicates fois le meme traitement
+        { 
+          split_cv = initial_split(data_antler, prop=my_prop)
+          
+          train_data = analysis(split_cv)
+          test_data = assessment((split_cv))
+          
+          par_Lineaire = optim(par = optimization_function(predicteur_Lineaire,nb_par = 2), 
+                                   predicteur = predicteur_Lineaire, 
+                                   my_data = train_data, 
+                                   cost_function, 
+                                   method = "Nelder-Mead")$par
+          
+          par_log = optim(par = optimization_function(predicteur_log,nb_par = 2), 
+                                   predicteur = predicteur_log, 
+                                   my_data = train_data, 
+                                   cost_function, 
+                                   method = "Nelder-Mead")$par
+          
+          par_Horvath = optim(par = optimization_function(predicteur_Horvath,nb_par = 3), 
+                                    predicteur = predicteur_Horvath, 
+                                    my_data = train_data, 
+                                    cost_function, 
+                                    method = "Nelder-Mead")$par
+          
+          par_Quadratic = optim(par = optimization_function(predicteur_Quadratic,nb_par = 2), 
+                                    predicteur = predicteur_Quadratic, 
+                                    my_data = train_data, 
+                                    cost_function, 
+                                    method = "Nelder-Mead")$par
+          
+          
+          
+          value_Lineaire = cost_function(par_Lineaire, predicteur_Lineaire, my_data = test_data)
+          value_Log = cost_function(par_log, predicteur_log, my_data = test_data)
+          value_Horvath = cost_function(par_Horvath, predicteur_Horvath, my_data = test_data)
+          value_Quadratic = cost_function(par_Quadratic, predicteur_Quadratic, my_data = test_data)
+          
+          
+          
+          tibble(method = c("Lineaire", "Logarithmic", "Horvath", "Quadratic"),
+                 performance = c(value_Lineaire, 
+                                 value_Log,
+                                 value_Horvath, 
+                                 value_Quadratic))
+          
+          
+        }) %>% 
+    bind_rows(.id = "Replicate") 
+}
+
+```
+```{r}
+cv_res = cv_function(my_prop = 0.7, nb_replicates = 10)
+
+```
+```{r, fig.height=3, fig.width=4, echo = FALSE}
+ggplot(data_antler) +
+  aes(x = Age, y = DNAmAge) +
+  geom_point()+
+  stat_function(aes(color = "log"), 
+                fun = predicteur_log, 
+                args = list(parametre  = optimization_function(predicteur_log, 
+                                                               nb_par = 2))) +
+  stat_function(aes(color = "Horvath"), 
+                fun = predicteur_Horvath, 
+                args = list(parametre  = optimization_function(predicteur_Horvath, 
+                                                               nb_par = 3))) +
+  
+  stat_function(aes(color = "Lineaire"), 
+                fun = predicteur_Lineaire, 
+                args = list(parametre  = optimization_function(predicteur_Lineaire, 
+                                                               nb_par = 2))) + 
+  stat_function(aes(color = "Quadratic"), 
+                fun = predicteur_Quadratic, 
+                args = list(parametre  = optimization_function(predicteur_Quadratic, 
+                                                               nb_par = 2))) + 
+  ggtitle("Tested models of DNAmAge \n  in relation to the Age")
+
+
+ggplot(cv_res, aes(x=method, y=performance, color=method)) + 
+  geom_boxplot()+ 
+  geom_jitter(shape=16, position=position_jitter(0.01))+ 
+  ggtitle("Cross-validation \n evaluating models of DNAmAge")
+```
+
+### RESULTS
+
+#### Relationship between epigenetic age acceleration and antler length
+
+
+
+
+

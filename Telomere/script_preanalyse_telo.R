@@ -3,7 +3,10 @@ rm(list = ls()) # nettoyage de l'environnement de travail
 # Chargement du jeu de données --------------------------------------------
 
 source("utils_packages.R")
-source("script_pretraitement_data_telo.R")
+source("script_pretraitement_data_telomere.R")
+source("script_standardisation_antler _telo.R")
+
+
 
 data_antler= mutate(data_antler,
                     RTL = scale(RTL))
@@ -14,20 +17,22 @@ ggplot(data_antler,
   geom_boxplot()
 
 ggplot(data_antler,
+       aes(x = Population,
+           y = RTL)) +
+  geom_boxplot()
+
+ggplot(data_antler,
        aes(x = Age,
            y = RTL,
            color=Population)) +
   geom_point()
 
 
-
 ggplot(data_antler,
-       aes(x = Antler_right,
+       aes(x = Antler_std,
            y = RTL,
            color=AgeClass)) +
-  geom_point()+
-  labs( x = "Standardized antler length")
-
+  geom_point()
 
 
 ggplot(data_antler,
@@ -85,48 +90,33 @@ ggplot(data_difference_telomere,
            color = AgeClass)) +
   geom_point()
 
-# variation de AgeAccelResiduals ------------------------------------------
-
-data_difference_DNAm = dplyr::select(data_antler, Id, Year, Antler_std, AgeAccelResiduals) %>% 
-  na.omit() %>% 
-  group_by(Id) %>% 
-  group_map(.f = function(tableau, groupe){
-    if(nrow(tableau) == 1){
-      return(NULL)
-    }
-    else
-      tibble(difference_DNAm = arrange(tableau, Year) %>% # On trie le tableau par annee
-               pull(AgeAccelResiduals) %>%  # On extrait la colonne RTL
-               diff(),
-             difference_DNAm_relative = difference_DNAm /(arrange(tableau, Year) %>%
-                                                            slice(1) %>% # On trie le tableau par annee
-                                                            pull(AgeAccelResiduals)),
-             Pop_Id = groupe$Pop_Id) %>% 
-      return() # On sort les différences
-  }) %>% 
-  bind_rows() %>% # Pour aggréger la liste de tableau
-  left_join(dplyr::filter(data_antler, Year == 2016))
-
-ggplot(data_difference_DNAm,
-       aes(x = Antler_std,
-           y = difference_DNAm,
-           color = AgeClass,
-           size = Weight,
-           label = Pop_Id)) +
-  geom_point()+
-  geom_text(hjust=1, vjust=0)+
-  labs( y = "AgeAccel(N+1) - AgeAccel(N)")
+# glm ---------------------------------------------------------------------
 
 
-ggplot(data_difference_DNAm,
-       aes(x = InvessResiduals,
-           y = difference_DNAm,
-           color = Cohort_Type,
-           size = Weight,
-           label = Pop_Id)) +
-  geom_point()+
-  geom_text(hjust=1, vjust=0)+
-  labs( y = "AgeAccel(N+1) - AgeAccel(N)")
+data_antler_lm = dplyr::select(data_antler, RTL, Population , AgeClass, Weight , Antler_std) %>% 
+  na.omit()
 
-lm(RTL ~ Population + AgeClass + Weight + Antler_right, data = data_antler) %>% 
+reg_lm_full = lm(RTL ~ Population + AgeClass + Weight + Antler_std, data = data_antler_lm) 
+
+options(na.action = "na.fail")
+
+fm_full <- reg_lm_full
+ms_full <- dredge(fm_full)
+
+head(ms_full)
+
+par(mar = c(3,5,6,4))
+plot(ms_full, labAsExpr = TRUE)
+
+reg_lm_1 = lm(RTL ~ Population, data = data_antler_lm) 
+reg_lm_2 = lm(RTL ~ Population + Antler_std, data = data_antler_lm) 
+
+reg_lm_1 %>% 
   summary()
+
+reg_lm_2 %>% 
+  summary()
+
+
+anova(reg_lm_1, reg_lm_2)
+

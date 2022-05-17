@@ -1,15 +1,11 @@
-
 # Problem with the sample
 data_antler = data_antler[-which(data_antler$Pop_Id=="CM2301" & data_antler$Year=="2016") , ]
-# Problem with the sample (Female)
-data_antler = data_antler[-which(data_antler$Pop_Id=="TM368" & data_antler$Year=="2018") , ]
 
 # Unmeasured Antler Length
 data_antler = data_antler[-which(data_antler$Pop_Id=="CM2317" & data_antler$Year=="2016") , ]
-data_antler = data_antler[-which(data_antler$Pop_Id=="TM3069" & data_antler$Year=="2018") , ]
 
 
-data_antler_used_std =data_antler[,c("Pop_Id", 
+data_antler_used_std =data_antler[,c("Id", 
                                      "Year",
                                      "Day",
                                      "AntlerLength",
@@ -163,7 +159,7 @@ data_antler_3 = mutate(data_antler_2,
                        )))
 
 
-data_antler_1C = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+data_antler_1C = data_antler_3[, c("Id", "Population","Year", "Antler_std")]
 
 
 # Classes supérieures -----------------------------------------------------
@@ -194,7 +190,7 @@ data_antler_3 = mutate(data_antler_2,
                        Antler_std = AntlerLength)
 
 
-data_antler_NC = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+data_antler_NC = data_antler_3[, c("Id", "Population","Year", "Antler_std")]
 
 # Trois Fontaines ---------------------------------------------------------
 
@@ -226,7 +222,7 @@ data_antler_3 = mutate(data_antler_2,
                        )))
 
 
-data_antler_1TF = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+data_antler_1TF = data_antler_3[, c("Id","Population", "Year", "Antler_std")]
 
 
 # Classes supérieures -----------------------------------------------------
@@ -256,14 +252,14 @@ data_antler_3 = mutate(data_antler_2,
                          log(AntlerLength), Day, optim_output$par
                        )))
 
-data_antler_NTF = data_antler_3[, c("Pop_Id", "Year", "Antler_std")]
+data_antler_NTF = data_antler_3[, c("Id", "Year","Population", "Antler_std")]
 
 data_antler_std = rbind(data_antler_1C,
                         data_antler_NC,
                         data_antler_1TF,
                         data_antler_NTF)
 
-data_antler_complet <-  merge(data_antler_used_std, data_antler_std, by=c("Pop_Id", "Year"), all.x = TRUE)
+data_antler_complet <-  merge(data_antler_used_std, data_antler_std, by=c("Id", "Population","Year"), all.x = TRUE)
 
 
 # Traitement des cas Antler_Type==BD  & AntlerLength <= 1 --------------------
@@ -279,6 +275,6 @@ for (k in 1:nrow(data_antler_complet)){
   }
 }
 
-data_antler_complet <- data_antler_complet[,c("Pop_Id", "Year", "Antler_std")]
-data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), all.x = TRUE)
+data_antler_complet <- data_antler_complet[,c("Id", "Year", "Population", "Antler_std")]
+data_antler <-  merge(data_antler, data_antler_complet, by=c("Id", "Year", "Population"), all.x = TRUE)
 
