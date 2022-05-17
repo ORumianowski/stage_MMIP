@@ -22,6 +22,11 @@ ggplot(data_antler,
   geom_boxplot()
 
 ggplot(data_antler,
+       aes(x = Cohort_Quality_Pop,
+           y = RTL)) +
+  geom_point()
+
+ggplot(data_antler,
        aes(x = Age,
            y = RTL,
            color=Population)) +
@@ -93,10 +98,10 @@ ggplot(data_difference_telomere,
 # glm ---------------------------------------------------------------------
 
 
-data_antler_lm = dplyr::select(data_antler, RTL, Population , AgeClass, Weight , Antler_std) %>% 
+data_antler_lm = dplyr::select(data_antler, RTL, Population , AgeClass, Weight , Antler_std, Cohort_Quality_Pop) %>% 
   na.omit()
 
-reg_lm_full = lm(RTL ~ Population + AgeClass + Weight + Antler_std, data = data_antler_lm) 
+reg_lm_full = lm(RTL ~ Population + AgeClass + Weight + Antler_std + Cohort_Quality_Pop, data = data_antler_lm) 
 
 options(na.action = "na.fail")
 
@@ -109,7 +114,7 @@ par(mar = c(3,5,6,4))
 plot(ms_full, labAsExpr = TRUE)
 
 reg_lm_1 = lm(RTL ~ Population, data = data_antler_lm) 
-reg_lm_2 = lm(RTL ~ Population + Antler_std, data = data_antler_lm) 
+reg_lm_2 = lm(RTL ~ Population + Antler_std + Cohort_Quality_Pop, data = data_antler_lm) 
 
 reg_lm_1 %>% 
   summary()

@@ -44,4 +44,14 @@ data_antler = read_excel("data/Dataset_Telomere_Bois040522.xlsx", skip = 0, na =
   dplyr::select(Id, Year, Day, Population, Weight,
                 Cohort, Sex, Age, Tbars, RTL, AntlerLength, AntlerType, AgeClass) 
 
+dcohort = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
+  rename(Cohort_Quality_Pop = `CohortQuality/pop`) %>% 
+  mutate(Population = as.factor(Population),
+         Cohort = as.factor(Cohort), 
+         Cohort_Quality_Pop = as.numeric(Cohort_Quality_Pop)) %>% 
+  dplyr::select(Population, Cohort, Cohort_Quality_Pop) %>% 
+  unique()
+
+data_antler = merge(data_antler, dcohort, by=c("Population", "Cohort") , all.x = TRUE)
+
 
