@@ -54,8 +54,7 @@ ggplot(data_antler,
 
 # raccourcissement télomérique --------------------------------------------
 
-# On calcule la difference par Pop_Id
-# Comme on fait le même traitelent pour chacun, on utilisre group_by et group_map
+
 data_difference_telomere = dplyr::select(data_antler, Id, Year, RTL) %>% 
   na.omit() %>% 
   group_by(Id) %>% 
@@ -72,19 +71,13 @@ data_difference_telomere = dplyr::select(data_antler, Id, Year, RTL) %>%
   }) %>% 
   bind_rows() %>% # Pour aggréger la liste de tableau
   left_join(dplyr::select(filter(data_antler, Year == 2016), 
-                          Antler_right, Id, Tbars, Weight, AgeClass))
+                          Antler_std, Id, Tbars, Weight, AgeClass, Cohort_Quality_Pop, Population))
 
 
 
 
 ggplot(data_difference_telomere,
-       aes(x = Weight,
-           y = Difference_telo,
-           color = AgeClass)) +
-  geom_point()
-
-ggplot(data_difference_telomere,
-       aes(x = Antler_right,
+       aes(x = Antler_std,
            y = Difference_telo,
            color = AgeClass)) +
   geom_point()
@@ -95,7 +88,14 @@ ggplot(data_difference_telomere,
            color = AgeClass)) +
   geom_point()
 
-# glm ---------------------------------------------------------------------
+
+ggplot(data_difference_telomere,
+       aes(x = Weight,
+           y = Difference_telo,
+           color = AgeClass)) +
+  geom_point()
+
+# glm RTL ---------------------------------------------------------------------
 
 
 data_antler_lm = dplyr::select(data_antler, RTL, Population , AgeClass, Weight , Antler_std, Cohort_Quality_Pop) %>% 
@@ -114,7 +114,7 @@ par(mar = c(3,5,6,4))
 plot(ms_full, labAsExpr = TRUE)
 
 reg_lm_1 = lm(RTL ~ Population, data = data_antler_lm) 
-reg_lm_2 = lm(RTL ~ Population + Antler_std + Cohort_Quality_Pop, data = data_antler_lm) 
+reg_lm_2 = lm(RTL ~ Population + Antler_std, data = data_antler_lm) 
 
 reg_lm_1 %>% 
   summary()
@@ -124,4 +124,66 @@ reg_lm_2 %>%
 
 
 anova(reg_lm_1, reg_lm_2)
+
+
+
+# glm shortening ---------------------------------------------------------------------
+
+
+data_antler_lm = data_difference_telomere %>% 
+  na.omit()
+
+reg_lm_full = lm(Difference_telo ~  AgeClass + Weight + Antler_std + Antler_std + Population + Cohort_Quality_Pop, data = data_antler_lm) 
+
+options(na.action = "na.fail")
+
+fm_full <- reg_lm_full
+ms_full <- dredge(fm_full)
+
+head(ms_full)
+
+par(mar = c(3,5,6,4))
+plot(ms_full, labAsExpr = TRUE)
+
+
+# Cohort ------------------------------------------------------------------
+
+ggplot(data_antler,
+       aes(x = Cohort_Quality_Pop ,
+           y = Weight,
+           color=AgeClass)) +
+  geom_point()
+
+data_antler_lm = dplyr::select(data_antler, RTL, Population , AgeClass, Weight , Antler_std, Cohort_Quality_Pop) %>% 
+  na.omit()
+
+reg_lm_full = lm(Cohort_Quality_Pop ~  Weight + Antler_std + RTL + AgeClass, data = data_antler_lm) 
+
+options(na.action = "na.fail")
+
+fm_full <- reg_lm_full
+ms_full <- dredge(fm_full)
+
+head(ms_full)
+
+par(mar = c(3,5,6,4))
+plot(ms_full, labAsExpr = TRUE)
+
+reg_lm_1 = lm(Cohort_Quality_Pop ~ AgeClass + Antler_std, data = data_antler_lm) 
+reg_lm_2 = lm(Weight ~ AgeClass + Cohort_Quality_Pop + AgeClass:Cohort_Quality_Pop, data = data_antler_lm) 
+
+reg_lm_1 %>% 
+  summary()
+
+reg_lm_2 %>% 
+  summary()
+
+
+reg_lm_2 %>% 
+  anova()
+
+
+anova(reg_lm_1, reg_lm_2)
+
+
 
