@@ -71,7 +71,7 @@ data_difference_telomere = dplyr::select(data_antler, Id, Year, RTL) %>%
   }) %>% 
   bind_rows() %>% # Pour aggréger la liste de tableau
   left_join(dplyr::select(filter(data_antler, Year == 2016), 
-                          Antler_std, Id, Tbars, Weight, AgeClass, Cohort_Quality_Pop, Population))
+                          Antler_std, Id, Tbars, Weight, AgeClass, Cohort_Quality_Pop, Population, Age))
 
 
 
@@ -98,10 +98,10 @@ ggplot(data_difference_telomere,
 # glm RTL ---------------------------------------------------------------------
 
 
-data_antler_lm = dplyr::select(data_antler, RTL, Population , AgeClass, Weight , Antler_std, Cohort_Quality_Pop) %>% 
+data_antler_lm = dplyr::select(data_antler, RTL, Population , AgeClass, Age,  Weight , Antler_std, Cohort_Quality_Pop) %>% 
   na.omit()
 
-reg_lm_full = lm(RTL ~ Population + AgeClass + Weight + Antler_std + Cohort_Quality_Pop, data = data_antler_lm) 
+reg_lm_full = lm(RTL ~ Population + AgeClass + Age + Weight + Antler_std + Cohort_Quality_Pop, data = data_antler_lm) 
 
 options(na.action = "na.fail")
 
@@ -122,6 +122,10 @@ reg_lm_1 %>%
 reg_lm_2 %>% 
   summary()
 
+x = data_antler_lm$RTL[data_antler_lm$Population=="C"]
+y = data_antler_lm$RTL[data_antler_lm$Population=="TF"]
+
+t.test(x, y)
 
 anova(reg_lm_1, reg_lm_2)
 
@@ -133,7 +137,10 @@ anova(reg_lm_1, reg_lm_2)
 data_antler_lm = data_difference_telomere %>% 
   na.omit()
 
-reg_lm_full = lm(Difference_telo ~  AgeClass + Weight + Antler_std + Antler_std + Population + Cohort_Quality_Pop, data = data_antler_lm) 
+reg_lm_full = lm(Difference_telo ~  Age + AgeClass + Weight + Antler_std + Population + Cohort_Quality_Pop+
+                   Antler_std:AgeClass +   Antler_std:Weight + Antler_std:Population +  Antler_std:Cohort_Quality_Pop+
+                   Weight:AgeClass + Weight:Population +  Weight:Cohort_Quality_Pop, 
+                 data = data_antler_lm) 
 
 options(na.action = "na.fail")
 
@@ -150,14 +157,17 @@ plot(ms_full, labAsExpr = TRUE)
 
 ggplot(data_antler,
        aes(x = Cohort_Quality_Pop ,
-           y = Weight,
+           y = Antler_std,
            color=AgeClass)) +
   geom_point()
 
 data_antler_lm = dplyr::select(data_antler, RTL, Population , AgeClass, Weight , Antler_std, Cohort_Quality_Pop) %>% 
   na.omit()
 
-reg_lm_full = lm(Cohort_Quality_Pop ~  Weight + Antler_std + RTL + AgeClass, data = data_antler_lm) 
+reg_lm_full = lm(Cohort_Quality_Pop ~  Weight + Antler_std + RTL +
+                   Weight:Antler_std + Weight:RTL +
+                   Antler_std:RTL,
+                 data = data_antler_lm) 
 
 options(na.action = "na.fail")
 
@@ -169,8 +179,8 @@ head(ms_full)
 par(mar = c(3,5,6,4))
 plot(ms_full, labAsExpr = TRUE)
 
-reg_lm_1 = lm(Cohort_Quality_Pop ~ AgeClass + Antler_std, data = data_antler_lm) 
-reg_lm_2 = lm(Weight ~ AgeClass + Cohort_Quality_Pop + AgeClass:Cohort_Quality_Pop, data = data_antler_lm) 
+reg_lm_1 = lm(Cohort_Quality_Pop ~ Weight, data = data_antler_lm) 
+reg_lm_2 = lm(Cohort_Quality_Pop ~ Antler_std, data = data_antler_lm) 
 
 reg_lm_1 %>% 
   summary()
@@ -179,8 +189,8 @@ reg_lm_2 %>%
   summary()
 
 
-reg_lm_2 %>% 
-  anova()
+reg_lm_1 %>% 
+  car::Anova()
 
 
 anova(reg_lm_1, reg_lm_2)

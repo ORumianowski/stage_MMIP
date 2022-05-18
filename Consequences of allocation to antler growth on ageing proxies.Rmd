@@ -1,5 +1,5 @@
 ---
-title: "Consequences of allocation to antler growth on ageing proxies"
+title: "Consequences of allocation to antler growth on epigenetic age acceleration and telomere dynamics"
 author: "RUMIANOWSKI 0."
 date: "16/05/2022"
 output: 
@@ -7,11 +7,10 @@ output:
     theme: simplex
     toc: yes 
     toc_float: yes
-    code_folding: hide
 encoding: UTF-8
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 
@@ -36,6 +35,16 @@ library(emmeans)
 library(cowplot)
 
 ```
+
+### INTRODUCTION
+
+
+Evolutionary theories of senescence, i.e. Antagonistic Pleiotropic Theory, Disposable Soma Theory, consider that aging emerges from the trade-off between reproduction in early life and in late life (see Lemaître et al. 2015 for a review). Therefore, because of sexual selection is associed with a diversity of cost (Garratt & Brooks, 2012), production and maintenance of secondary sexual traits (SST) is expected to correlate with senescence intensity. In mammals, the strenght of sexual selection negatively influenced the onset of senescence, and males of  polygynous species having an earlier onset of senescence than in monogamous species (Clutton-Brock & Isvaran 2007; Tidière et al., 2015). In an intraspecific perpective, sexual selection  might explained partially between-sex difference in senescence pattern. Males with a high investment in precopulatory behavior are expected to suffer a strengthened senescence. (Lemaître et al., 2014). Studies on  the cost associated with the development of SST have revealed diverse physiological costs (Garratt & Brooks, 2012). However, long-term costs were only unveiled from demographic studies (Lemaître et al., 2018). Very few studies have brought information able to determine if these long-term costs are physiological and what are the underlying mechanisms. 
+
+A first approach to fill this gap is to know if the intensity of production and maintenance of SST affects proxies of aging. For example, in the Australian painted dragon (Ctenophorus pictus), males that maintained a high level of head coloration suffered from a rapid rate of telomere loss  Giraudeau et al., 2016). Although still highly discussed what is the relation between telomere dynamics and individual life history, their shortening correlates with increased mortality risk and is usually perceived as a good biomarker for explaining reproductive costs (Sudyka, 2019).  Based on the level of cytosine methylation at some selected CpG sites, highly accurate epigenetic age estimators recently developed offer another promising proxy to study the process of biological aging in ecology and evolution (Parrott and Bertucci, 2019). By interpreting the degree of epigenetic-to-chronological age discordance as a result of individual age acceleration, it can be used to quantify physiological long-term cost (Gibson et al. 2019).
+
+In the present study, we tested the relationship between the allocation to antler growth and these two proxies of aging i.e. telomere dynamics and epigenetic age acceleration in roe deer (Capreolus capreolus), using a dataset from two French population measured in 2016 and 2017. 
+
 ### MATERIALS AND METHODS
 
 #### Study populations
@@ -114,11 +123,10 @@ data_antler_used_std =select(data_antler,
 
 Antlers grow each year from the end of November until early March (i.e. before the velvet is shed).  Roe deer are in hard antler until the end of October/early November when	 they cast their antlers (Sempéré & Boissin, 1981). During their first year of life, males develop a small “button” (i.e. a very short	antler	with	a	round	 top	instead	of	a	spike)	on	top	of	their	pedicle	before	growing	their	 first	full	antlers	 at	1	year	 of	age	 (Figure	1).	Then,	males	generally	 develop	a	four- 	point	(in	yearlings) 	or	five- 	/six-	point	(in	adults) 	 head.	 Antler	 length	 was	 measured	 to	the	 nearest	 0.5	cm	along 	 the	 external	 side	 of	the	 main	 beam,	 from	 the	 base	 of	the	 antler	 to	the	 top	 of	the	 main	 beam	 (Vanpé	 et	al.,	 2007).	 Antler	 length	 was	used	as	a	proxy	for	allocation	to	antler	growth	because	there	 is	a	strong	 covariation	 among	 the	 different	 antler	 traits	 in	deer 	 (Lemaître	et	al.,	 2014).	 When	an	individual	 was	caught	more	than	 once	in	a	given	year,	only	the	last	measure	was	considered.	When	 both	antlers	were	intact,	the	average	length	was	computed	and	retained	for	the	analyses.	When	one	antler	was	broken,	the	value	of	 the	remaining	intact	antler	was	retained.	When	both	antlers	were	 broken,	 the	 individual	 was	 removed	 from	 the	 dataset.	 
 
-To obtain a measure of antler length independante the date of capture, we used a standardization method used by Lemaître (Lemaître	et	al.,	 2018). We	 analysed	 the	relationship	 between	 antler	 length	 and	the	Julian	date	of	capture	(with	1	December	as	day	0).	As	antler	 growth	is	a	nonlinear	process	(Goss,	1983),	we	fitted	different	functions	to	assess	reliably	the	shape	of	the	relationship	between	antler	 length	(log-	transformed)	and	date	of	capture :	constant,	 linear,	 a	threshold	 function	 with	 one	 slope	 (i.e.	 antler	 length	 increasing	 linearly	 with	 date	 of	capture	 until	 reaching	 a	plateau	 at	 a	given	 date)	 and	 a	threshold	 function	 with	 two	 slopes	 (i.e.	 antler	 length	increasing	linearly	with	date	of	capture	until	a	given	date	and	 then	increasing	further,	but	with	a	different	slope).	To	estimate	these	 threshold	 values,	 the	deviance	 profile	 of	the	models	 including	 the	 slopes	was	used	and	the	date	 of	capture	 providing	the	lowest	 deviance	was	selected	as	the	threshold	 value	(Ulm	&	Cox,	1989).	Model	 selection	was	based	on	the	Akaike	 Information	Criterion	(AIC).
+To obtain a measure of antler length independante the date of capture, we used a standardization method used by Lemaître (2018). We	 analysed	 the	relationship	 between	 antler	 length	 and	the	Julian	date	of	capture	(with	1	December	as	day	0).	As	antler	 growth	is	a	nonlinear	process	(Goss,	1983),	we	fitted	different	functions	to	assess	reliably	the	shape	of	the	relationship	between	antler	 length	(log-	transformed)	and	date	of	capture :	constant,	 linear,	 a	threshold	 function	 with	 one	 slope	 (i.e.	 antler	 length	 increasing	 linearly	 with	 date	 of	capture	 until	 reaching	 a	plateau	 at	 a	given	 date)	 and	 a	threshold	 function	 with	 two	 slopes	 (i.e.	 antler	 length	increasing	linearly	with	date	of	capture	until	a	given	date	and	 then	increasing	further,	but	with	a	different	slope).	To	estimate	these	 threshold	 values,	 the	deviance	 profile	 of	the	models	 including	 the	 slopes	was	used	and	the	date	 of	capture	 providing	the	lowest	 deviance	was	selected	as	the	threshold	 value	(Ulm	&	Cox,	1989).	Model	 selection	was	based	on	the	Akaike	 Information	Criterion	(AIC).
 
 
 The models are tested on the data by discriminating according to the population of origin and whether the measurement was performed on a first year or not i.e. partitioning the dataset into four. Measurements made on individuals with dry wood were removed from the analysis. The raw measurement will be used directly as a standard measurement. Measurements made on individuals with antlers smaller than 1cm were removed from the analysis. The raw measurement will be used directly as a standard measurement.In order to retain as much data as possible, measurements of antlers where the antler condition is unknown were included in the standardization process.The AIC and graph analysis reveal that the linear model is the best fit, except for the group of adults from Chizé where the best model corresponds to the constant function. For this group, the raw measure will be directly used as the standard measure.
-
 
 
 ```{r}
@@ -451,7 +459,7 @@ Because methylation dynamics are more active during development, epigenetic age 
 $$ f_1(Age) = \alpha + \beta \times Age $$ 
 $$ f_2(Age) = \alpha \times log(Age+1) + \beta * Age $$ 
 $$ f_3(Age) = \alpha \times log(Age+1), Age < adult.age $$
-$$ f_3(Age) =\beta \times \frac{ (Age-adult.age)}{adult.age + 1} + \alpha \times log(adult.age+1) , Age>adult.age $$
+$$ f_3(Age) =\beta \times \frac{ Age-adult.age}{adult.age + 1} + \alpha \times log(adult.age+1) , Age>adult.age $$
 
 $$ f_4(Age) = \alpha \times Age + \beta \times Age^2 $$ 
 
@@ -630,11 +638,44 @@ ggplot(cv_res, aes(x=method, y=performance, color=method)) +
   ggtitle("Cross-validation \n evaluating models of DNAmAge")
 ```
 
+#### Statistical analysis
+
+All statistical analyses were performed in the R environment version 4.0.3. The selection of models was carried out using the function “dredge” of the package MuMin.  A p-value of 0.05 was considered significant. For all analysis, antler length,  weight, age, population origin and type of quality cohort were used as explicatories variatiables.
+To test the relationship between antler length and the EAA, a first model was applied on all adults (X individuals) and a second model only applied on the fawn For all the analysis concerning EAA, the initial full model has the index of EAA as response variable. Similarly, the relationship between antler length and the RTL was tested with a first model applied on all adults (X individuals) and a second model only applied on the fawn. The relationship between antler length and the telomere dynamics was tested thanks to the recaptures of X individuals in the second year making access to an annual RTL variation possible. 
+
+
 ### RESULTS
 
-#### Relationship between epigenetic age acceleration and antler length
+#### Relationship between epigenetic age acceleration and allocation to antler growth
 
+For all analyses, the constant model was selected.
 
+#### Relationship between RTL and allocation to antler growth
 
+For all analyses, the selected model contained the population origin as explanatory variable, with a difference of 0.43 (95% CI [-0.79 ; -0.06], P  =  0.021) between the two population, revealing the dependance of RTL to the population for roe deer.
+
+#### Relationship between RTL annual variation and allocation to antler growth
+
+For all analyses, the constant model was selected.
+
+### DISCUSSION
+
+### REFERENCES
+
+Clutton-Brock, T.H., Isvaran, K., 2007. Sex differences in ageing in natural populations of vertebrates. Proc. R. Soc. B. 274, 3097–3104. https://doi.org/10.1098/rspb.2007.1138
+
+Garratt, M., Brooks, R.C., 2012. Oxidative stress and condition-dependent sexual signals: more than just seeing red. Proc. R. Soc. B. 279, 3121–3130. https://doi.org/10.1098/rspb.2012.0568
+
+Gibson, J., Russ, T.C., Clarke, T.-K., Howard, D.M., Hillary, R.F., Evans, K.L., Walker, R.M., Bermingham, M.L., Morris, S.W., Campbell, A., Hayward, C., Murray, A.D., Porteous, D.J., Horvath, S., Lu, A.T., McIntosh, A.M., Whalley, H.C., Marioni, R.E., n.d. A meta-analysis of genome-wide association studies of epigenetic age acceleration 30.
+
+Lemaître, J.-F., Gaillard, J.-M., Pemberton, J.M., Clutton-Brock, T.H., Nussey, D.H., 2014. Early life expenditure in sexual competition is associated with increased reproductive senescence in male red deer. Proc. R. Soc. B. 281, 20140792. https://doi.org/10.1098/rspb.2014.0792
+
+Lemaître, J.-F., Berger, V., Bonenfant, C., Douhard, M., Gamelon, M., Plard, F., Gaillard, J.-M., 2015. Early-late life trade-offs and the evolution of ageing in the wild. Proc. R. Soc. B. 282, 20150209. https://doi.org/10.1098/rspb.2015.0209
+
+Parrott, B.B., Bertucci, E.M., 2019. Epigenetic Aging Clocks in Ecology and Evolution. Trends in Ecology & Evolution 34, 767–770. https://doi.org/10.1016/j.tree.2019.06.008
+
+Sudyka, J., 2019. Does Reproduction Shorten Telomeres? Towards Integrating Individual Quality with Life‐History Strategies in Telomere Biology. BioEssays 41, 1900095. https://doi.org/10.1002/bies.201900095
+
+Tidière, M., Gaillard, J.-M., Müller, D.W.H., Lackey, L.B., Gimenez, O., Clauss, M., Lemaître, J.-F., 2015. Does sexual selection shape sex differences in longevity and senescence patterns across vertebrates? A review and new insights from captive ruminants: SEXUAL SELECTION AND SENESCENCE. Evolution 69, 3123–3140. https://doi.org/10.1111/evo.12801
 
 
