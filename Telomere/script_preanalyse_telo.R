@@ -71,7 +71,7 @@ data_difference_telomere = dplyr::select(data_antler, Id, Year, RTL) %>%
   }) %>% 
   bind_rows() %>% # Pour aggréger la liste de tableau
   left_join(dplyr::select(filter(data_antler, Year == 2016), 
-                          Antler_std, Id, Tbars, Weight, AgeClass, Cohort_Quality_Pop, Population, Age))
+                          Antler_std, Id, Tbars, Weight, AgeClass, Cohort_Quality_Pop, Population, Age, Cohort))
 
 
 
@@ -98,13 +98,13 @@ ggplot(data_difference_telomere,
 # glm RTL ---------------------------------------------------------------------
 
 
-data_antler_lm = dplyr::select(data_antler, RTL, Population , AgeClass, Age,  Weight , Antler_std, Cohort_Quality_Pop, Cohort, Tbars) %>% 
+data_antler_lm = dplyr::select(data_antler, RTL, Year, Population , AgeClass, Age,  Weight , Antler_std, Cohort_Quality_Pop, Cohort, Tbars) %>% 
   na.omit()
 
 reg_lm_full = lmer(RTL ~ Age + AgeClass + Weight + Antler_std + Population + Cohort_Quality_Pop+ Tbars+
                    Antler_std:AgeClass +   Antler_std:Weight + Antler_std:Population +  Antler_std:Cohort_Quality_Pop+
                    Weight:AgeClass + Weight:Population +  Weight:Cohort_Quality_Pop +
-                     (1|Cohort), 
+                     (1|Cohort) + (1|Year), 
                  data = data_antler_lm) 
 
 options(na.action = "na.fail")
@@ -116,7 +116,7 @@ head(ms_full)
 
 
 reg_lm_1 = lm(RTL ~ Population, data = data_antler_lm) 
-reg_lm_2 = lm(RTL ~ Population + Antler_std, data = data_antler_lm) 
+reg_lm_2 = lmer(RTL ~ Population + Antler_std + (1|Cohort) + (1|Year), data = data_antler_lm) 
 
 reg_lm_1 %>% 
   summary()
@@ -139,7 +139,7 @@ anova(reg_lm_1, reg_lm_2)
 data_antler_lm = data_difference_telomere %>% 
   na.omit()
 
-reg_lm_full = lm(Difference_telo ~  Age + AgeClass + Weight + Antler_std + Population + Cohort_Quality_Pop+ Tbars+
+reg_lm_full = lmer(Difference_telo ~  Age + AgeClass + Weight + Antler_std + Population + Cohort_Quality_Pop+ Tbars+
                    Antler_std:AgeClass +   Antler_std:Weight + Antler_std:Population +  Antler_std:Cohort_Quality_Pop+
                    Weight:AgeClass + Weight:Population +  Weight:Cohort_Quality_Pop, 
                  data = data_antler_lm) 

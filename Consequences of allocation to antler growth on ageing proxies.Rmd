@@ -1,5 +1,5 @@
 ---
-title: "Consequences of allocation to antler growth on epigenetic age acceleration and telomere dynamics"
+title: "Consequences of allocation to antler growth on epigenetic age deviation and telomere dynamics"
 date: "16/05/2022"
 output: 
   html_document:
@@ -42,17 +42,22 @@ $^2$ Université	Lyon	1, CNRS,Laboratoire	de	Biométrie	et	Biologie	Evolutive	UM
 
 ### INTRODUCTION
 
-Evolutionary theories of senescence, i.e. Antagonistic Pleiotropic Theory, Disposable Soma Theory, consider that aging emerges from the trade-off between reproduction in early life and in late life (see Lemaître et al. 2015 for a review). Therefore, because of sexual selection is associed with a diversity of cost (Garratt & Brooks, 2012), high allocation to precopulatory competition including production and maintenance of secondary sexual traits (SST) is expected to correlate with senescence intensity. In mammals, the strenght of sexual selection negatively influenced the onset of senescence, and males of  polygynous species having an earlier onset of senescence than in monogamous species (Clutton-Brock & Isvaran 2007; Tidière et al., 2015). In an intraspecific perpective, sexual selection  might explained partially between-sex difference in senescence pattern. Males with a high investment in precopulatory behavior suffer from a strengthened senescence. For example, in red deer, males which had larger harems experienced higher rates of senescence in both harem size and rut duration. (Lemaître et al., 2014). Studies on  the cost associated with the development of SST have revealed diverse physiological costs (Garratt & Brooks, 2012). However, long-term costs were only unveiled from demographic studies (Lemaître et al., 2018). Very few studies have brought information able to determine if these long-term costs are physiological and what are the underlying mechanisms. 
+Evolutionary theories of senescence, i.e. Antagonistic Pleiotropic Theory, Disposable Soma Theory, consider that aging emerges from the trade-off between reproduction in early life and in late life (Williams 1957, Kirkwood & Rose 1991, see Lemaître et al. 2015 for a review). Therefore, because of sexual selection is associed with a diversity of cost (Garratt & Brooks, 2012), high allocation to precopulatory competition including production and maintenance of secondary sexual traits (SST) is expected to correlate with senescence intensity. In mammals, the strenght of sexual selection negatively influenced the onset of senescence, and males of  polygynous species having an earlier onset of senescence than in monogamous species (Clutton-Brock & Isvaran 2007; Tidière et al., 2015). In an intraspecific perpective, sexual selection  might explained partially between-sex difference in senescence pattern. Males with a high investment in precopulatory behavior suffer from a strengthened senescence. For example, in red deer, males which had larger harems experienced higher rates of senescence in both harem size and rut duration. (Lemaître et al., 2014). Studies on  the cost associated with the development of SST have revealed diverse physiological costs (Garratt & Brooks, 2012). However, long-term costs were only unveiled from demographic studies (Lemaître et al., 2018). Very few studies have brought information able to determine if these long-term costs are physiological and what are the underlying mechanisms. 
 
 A first approach to fill this gap is to know if the intensity of production and maintenance of SST affects proxies of aging. For example, in the Australian painted dragon (Ctenophorus pictus), males that maintained a high level of head coloration suffered from a rapid rate of telomere loss  (Giraudeau et al., 2016). Although the relation between telomere dynamics and individual life history is still highly discussed, telomere shortening correlates with increased mortality risk and is usually perceived as a good biomarker for explaining reproductive costs (Sudyka, 2019).  Based on the level of cytosine methylation at some selected CpG sites, highly accurate epigenetic age estimators recently developed offer another promising proxy to study the process of biological aging in ecology and evolution (Parrott and Bertucci, 2019). By interpreting the degree of epigenetic-to-chronological age discordance as a result of individual age acceleration, it can be used to quantify physiological long-term cost (Gibson et al. 2019).
 
-In the present study, we tested the relationship between the allocation to antler growth and these two proxies of aging i.e. telomere dynamics and epigenetic age acceleration in roe deer (Capreolus capreolus), using a dataset from two French population measured in 2016 and 2017. 
+In the present study, we tested the relationship between the allocation to antler growth and these two proxies of aging i.e. telomere dynamics and epigenetic age deviation in roe deer (Capreolus capreolus), using a dataset from two French population measured in 2016 and 2017. 
 
 ### MATERIALS AND METHODS
 
 #### Study populations
 
 We sampled roe deer living in two enclosed forests with markedly different environmental contexts: Trois-Fontaines (TF) and Chizé (CH). The Trois-Fontaines forest (1360 ha) is located in northeastern France (48°43'N, 4°55'E) and is characterized by a continental climate, moderately severe winters and warm and rainy summers. This site has rich soils and provides high quality habitat for roe deer (Pettorelli et al., 2006). In contrast, the Chizé forest (2614 ha) is located in western France (46°50'N, 0°25'W) and is characterized by temperate oceanic climate with Mediterranean influences. This site has a low productivity due to poor quality soils and frequent summer droughts (Pettorelli et al., 2006), and thereby provides a quite poor habitat for roe deer in most years. Individuals from these two populations have been intensively monitored using a long-term Capture-Mark-Recapture programme since 1975 and 1977 (for Trois-Fontaines and Chizé, respectively). At each site, 10–12 days of capture using drive-netting are organized every year between December and March (see Gaillard et al., 1993 for details on capture sessions), which allows capturing and measuring about half of the population every year. Once a roe deer is captured, its sex and body mass (to the nearest 50 g) are recorded and a basic clinical examination is performed. All individuals included in our analyses were of known age because they were either caught as newborn in spring (see Delorme et al., 1988 for further details) or as ca. 8 months old during winter captures, when they still have their milk teeth (most often incisors and always premolars, Flerov, 1952). Individuals are equipped with individually recognizable ear-tags and collars (either numbered, VHF or GPS collars), get a unique id, and are closely monitored throughout their lifetime using subsequent winter captures and observations in the field.
+
+
+#### Telomere assays
+
+Relative telomere length (hereafter RTL) was measured by quantitative PCR as previously described for these populations (Wilbourn et al. 2017). Genomic DNA was extracted from white blood cells . We measured relative leukocyte telomere length (RTL) using a real-time quantitative PCR method (qPCR; Cawthon 2002) which has previously been optimized and validated in sheep and cattle (Seeker et al. 2016 ) and previously used in roe deer (Wilbourn et al. 2017 ). This method measures the total amount of telomeric sequence present in a DNA sample relative to the amount of a non-variable copy number reference gene (beta-2-microglobulin (B2M)). B2M was previously identified as an appropriate reference gene for use in qPCRstudies of telomere length in sheep (Fairlie et al. 2016) and cattle (Seeker et al. 2018, Seeker et al., 2016).
 
 #### DNA methylation data
 
@@ -456,9 +461,9 @@ data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), 
 
 ```
 
-#### How to measure epigenetic age acceleration
+#### How to measure epigenetic age deviation
 
-Because methylation dynamics are more active during development, epigenetic age does not evolve in a linear fashion. Following Horvath (2013), we computed the epigenetic acceleration as the residuals of the models that best described the relationship between DNAm age and chronological age.  Four functions were proposed and we used a tenfold cross validation to compare them. The model with a simple logarithmic component was selected. The different functions	were: 
+Because methylation dynamics are more active during development, epigenetic age does not evolve in a linear fashion. Following Horvath (2013), we computed the epigenetic deviation as the residuals of the models that best described the relationship between DNAm age and chronological age.  Four functions were proposed and we used a tenfold cross validation to compare them. The model with a simple logarithmic component was selected. The different functions	were: 
 $$ f_1(Age) = \alpha + \beta \times Age $$ 
 $$ f_2(Age) = \alpha \times log(Age+1) + \beta * Age $$ 
 $$ f_3(Age) = \alpha \times log(Age+1), Age < adult.age $$
@@ -646,14 +651,14 @@ ggplot(cv_res, aes(x=method, y=performance, color=method)) +
 
 All statistical analyses were performed in the R environment version 4.0.3. The selection of linear mixed models based on the AICc was carried out using the function “dredge” of the package MuMin.  For all analysis, antler length,  weight and population origin were used as explanatory variables. The cohort i.e. the birth date was added as a random effect. One individual with a null antler length was removed from the analysis. The antler length and the weight were log-transformed. All possible variable interactions were added (see Additional Information). Individuals were partitioned into four groups (1, 2-4, 5-7 and +7 years) to form the variable of age class. 
 
-To test the relationship between antler length and the epigenetic age acceleration, a first model was applied on all individuals with no lacking data (88 individuals). The age class was added as an explanatory variable. A second model  was applied only on the fawn (27 individuals). 
+To test the relationship between antler length and the epigenetic age deviation, a first model was applied on all individuals with no lacking data (88 individuals). The age class was added as an explanatory variable. A second model  was applied only on the fawn (27 individuals). 
 
 Similarly, the relationship between antler length and the RTL was tested with a first model applied on all adults (123 individuals) and a second model only applied on the fawn. The relationship between antler length and the telomere dynamics was tested thanks to the recaptures of 25 individuals in the second year making access to an annual RTL variation possible. 
 
 
 ### RESULTS 
 
-For all analyses concerning the relationship between epigenetic age acceleration and allocation to antler growth, the constant model was selected. For all analyses concerning the relationship between RTL and allocation to antler growth, the selected model contained the population origin as explanatory variable, with a difference of 0.43 (95% CI [-0.79 ; -0.06], P  =  0.021) between the two population, revealing the dependence of RTL to the population for roe deer.For all analyses concerning the relationship between RTL annual variation and allocation to antler growth, the constant model was selected.
+For all analyses concerning the relationship between epigenetic age deviation and allocation to antler growth, the constant model was selected. For all analyses concerning the relationship between RTL and allocation to antler growth, the selected model contained the population origin as explanatory variable, with a difference of 0.43 (95% CI [-0.79 ; -0.06], P  =  0.021) between the two population, revealing the dependence of RTL to the population for roe deer.For all analyses concerning the relationship between RTL annual variation and allocation to antler growth, the constant model was selected.
 
 ```{r}
 date_day = function(date){
@@ -980,23 +985,64 @@ ggplot(data_antler,
 
 ### DISCUSSION
 
+Male allocation to precopulatory sexual competition is assumed to explain male biais in intensity of senescence of mammals.In roe deer, demographic analysis suggested that high allocation to antler growth is associated with a lower probability to reach the age of 6. Nevertheless, our results have not revealed any significant association between allocation to antler growth and both proxies of aging i.e. epigenetic age deviation and annual RTL variation. Therefore, we found no evidence that allocation to antler growth constitutes a physiological cost for roe deer. 
+
+Surprisingly, our results suggest that RTL is not associated with age in roe deer. For a majority of individuals, telomere length increased with age (60%, n=25). While measurement error could contribute to such an apparent elongation of telomere length, increasing RTL might result from a possible expression of telomerase. Still, our knowledge on telomerase is limited and unclear (no expression in the fibroblast of Munjac species, Gomes et al. 2011; expression in the antler of Sika deer, Sun et al. 2010). A significant difference of RTL was found between the two populations, individuals from Triois-Fontaines Forest having longer RTL. This result might be explained by the higher habitat quality of the forest. 
+
+Epigenetic age deviation was not explained by any explanatory variables invoked in the study.
+
+
 ### REFERENCES
 
+Arneson, A., Haghani, A., Thompson, M. J., Pellegrini, M., Kwon, S. B., Vu, H. T., Li, C. Z., Lu, A. T., Barnes, B., Hansen, K. D., Zhou, W., Breeze, C.E., Ernst, J., & Horvath, S. (2021). A mammalian methylation array for profiling methylation levels at conserved sequences. BioRxiv. https://doi.org/10.1101/2021.01.07.425637
+
+Cawthon, R.M., 2002. Telomere measurement by quantitative PCR. Nucleic Acids Res. 30, e47.
+
 Clutton-Brock, T.H., Isvaran, K., 2007. Sex differences in ageing in natural populations of vertebrates. Proc. R. Soc. B. 274, 3097–3104. https://doi.org/10.1098/rspb.2007.1138
+
+Delorme, D., Gaillard, J. M., & Jullien, J. M. (1988). Intérêt de l'étude de la période juvénile pour le suivi de l'évolution d’une population de chevreuils (Capreolus capreolus). Gibier Faune Sauvage, 5, 15–26.
+
+Flerov, K. K. (1952). Fauna of USSR, Mammals Vol. 1, No. 2. Musk Deer and Deer. USSR Academia Science.
+
+Gaillard, J., Delorme, D., Boutin, J. M., Van Laere, G., Boisaubert, B., & Pradel, R. (1993). Roe deer survival patterns: A comparative analysis of contrasting populations. Journal of Animal Ecology, 62, 778–791. https://doi.org/10.2307/5396
 
 Garratt, M., Brooks, R.C., 2012. Oxidative stress and condition-dependent sexual signals: more than just seeing red. Proc. R. Soc. B. 279, 3121–3130. https://doi.org/10.1098/rspb.2012.0568
 
 Gibson, J., Russ, T.C., Clarke, T.-K., Howard, D.M., Hillary, R.F., Evans, K.L., Walker, R.M., Bermingham, M.L., Morris, S.W., Campbell, A., Hayward, C., Murray, A.D., Porteous, D.J., Horvath, S., Lu, A.T., McIntosh, A.M., Whalley, H.C., Marioni, R.E., n.d. A meta-analysis of genome-wide association studies of epigenetic age acceleration 30.
 
+Gomes, N.M., Ryder, O.A., Houck, M.L., Charter, S.J., Walker, W., Forsyth, N.R., Austad, S.N., Venditti, C., Pagel, M., Shay, J.W., 2011. Comparative biology of mammalian telomeres: hypotheses on ancestral states and the roles of telomeres in longevity determination. Aging Cell 10, 761–768.
+
+Kirkwood TB, Rose MR. 1991 Evolution of senescence: late survival sacrificed for reproduction. Phil. Trans. R. Soc. Lond. B 332, 15 –24. (doi:10. 1098/rstb.1991.0028)
+
 Lemaître, J.-F., Gaillard, J.-M., Pemberton, J.M., Clutton-Brock, T.H., Nussey, D.H., 2014. Early life expenditure in sexual competition is associated with increased reproductive senescence in male red deer. Proc. R. Soc. B. 281, 20140792. https://doi.org/10.1098/rspb.2014.0792
+
+Lemaître, J., Cheynel, L., Douhard, F., Bourgoin, G., Débias, F., Ferté, H., Gilot‐Fromont, E., Pardonnet, S., Pellerin, M., Rey, B., Vanpé, C., Hewison, A.J.M., Gaillard, J., 2018. The influence of early‐life allocation to antlers on male performance during adulthood: Evidence from contrasted populations of a large herbivore. J Anim Ecol 87, 921–932. https://doi.org/10.1111/1365-2656.12833
 
 Lemaître, J.-F., Berger, V., Bonenfant, C., Douhard, M., Gamelon, M., Plard, F., Gaillard, J.-M., 2015. Early-late life trade-offs and the evolution of ageing in the wild. Proc. R. Soc. B. 282, 20150209. https://doi.org/10.1098/rspb.2015.0209
 
+Pettorelli, N., Gaillard, J.-M., Mysterud, A., Duncan, P., Chr. Stenseth, N., Delorme, D., Van Laere, G., Toïgo, C., & Klein, F. (2006). Using a proxy of plant productivity (NDVI) to find key periods for animal performance: The case of roe deer. Oikos, 112(3), 565–572. 
+
 Parrott, B.B., Bertucci, E.M., 2019. Epigenetic Aging Clocks in Ecology and Evolution. Trends in Ecology & Evolution 34, 767–770. https://doi.org/10.1016/j.tree.2019.06.008
+
+Seeker, L.A., Holland, R., Underwood, S., Fairlie, J., Psifidi, A., Ilska, J.J., Bagnall, A., Whitelaw, B., Coffey, M., Banos, G., 2016. Method specific calibration corrects for DNA extraction method effects on relative telomere length measurements by quantitative PCR. PLoS One 11, e0164046.
+
+Sempéré,	 A.	J.,	&	Boissin,	 J.	(1981).	 Relationship	 between	 antler	 development	and	 plasma	 androgen	 concentrations	 in	adult	 roe	deer.	 Journal of Reproduction and Fertility,	 62,	49–53.	 https://doi.org/10.1530/ jrf.0.0620049
 
 Sudyka, J., 2019. Does Reproduction Shorten Telomeres? Towards Integrating Individual Quality with Life‐History Strategies in Telomere Biology. BioEssays 41, 1900095. https://doi.org/10.1002/bies.201900095
 
+Sun, H., Zheng, W., Wu, S., Wang, C., Zheng, M., Tang, D., Zhu, Q., Zhang, Y., 2010. Detection of telomerase activity and expression of TERT gene in antler of sika deer. Anim. Husb. Feed Sci. 2, 12–20.
+
 Tidière, M., Gaillard, J.-M., Müller, D.W.H., Lackey, L.B., Gimenez, O., Clauss, M., Lemaître, J.-F., 2015. Does sexual selection shape sex differences in longevity and senescence patterns across vertebrates? A review and new insights from captive ruminants: SEXUAL SELECTION AND SENESCENCE. Evolution 69, 3123–3140. https://doi.org/10.1111/evo.12801
+
+Ulm,	 K.,	&	Cox,	 C.	(1989).	 On	the	estimation	 of	the	threshold	 values.	 Biometrics,	45,	1324–1328.
+
+Vanpé,	 C.,	Gaillard,	 J.	M.,	 Kjellander,	 P.,	Mysterud,	 A.,	Magnien,	 P.,	 Delorme,	 D.,	...	Hewison,	 A.	J.	M.	(2007).	 Antler	 size	 provides	 an	 honest	 signal	 of	male	 phenotypic	 quality	 in	roe	deer.	 The American Naturalist,	169,	481–493.	https://doi.org/10.1086/512046
+
+Wilbourn, R.V., Froy, H., McManus, M.-C., Cheynel, L., Gaillard, J.-M., Gilot-Fromont, E., Regis, C., Rey, B., Pellerin, M., Lemaître, J.-F., 2017. Age-dependent associations between telomere length and environmental conditions in roe deer. Biol. Lett. 13, 20170434.
+
+Williams GC. 1957 Pleiotropy, natural selection, and the evolution of senescence. Evolution 11, 398 –411. (doi:10.2307/2406060)
+
+Zhou , W., Triche, T. J. Jr, L aird, P. W., & S hen , H . (2018). S e SAMe: Reducing artifactual detection of DNA methylation by Infinium BeadChips in genomic deletions. Nucleic Acids Research, 46(20), e123.
 
 
 ### AUTHORS’ CONTRIBUTIONS 
