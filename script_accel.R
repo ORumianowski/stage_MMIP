@@ -26,8 +26,11 @@ data_antler_complet = dplyr::select(data_antler,
 
 reg_lm_full <- lmer(AgeAccelResiduals ~ Antler_std_log + Weight_log +
                       Age + AgeClass +
-                      Population+ Cohort_Type +
-                      Antler_std_log:Population + Antler_std_log:Weight_log +
+                      Population + Cohort_Type +
+                      Antler_std_log:Weight_log + Antler_std_log:Population + Antler_std_log:Cohort_Type +
+                      Antler_std_log:Age + Antler_std_log:AgeClass+
+                      Weight_log:Population + Weight_log:Cohort_Type+
+                      Weight_log:Age + Weight_log:AgeClass +
                       (1|Cohort),  
                     data=data_antler_complet)
 
@@ -41,7 +44,6 @@ head(ms_full)
 
 par(mar = c(3,5,6,4))
 plot(ms_full, labAsExpr = TRUE)
-
 
 # modele complet sur les premieres annees ---------------------------------
 
@@ -60,8 +62,11 @@ data_antler_1A = dplyr::select(data_antler,
   na.omit()
 
 
-reg_lm_1A <- lm(AgeAccelResiduals ~ Antler_std_log + Population + Weight_log +
-                  Antler_std_log:Population + Antler_std_log:Weight_log,  
+reg_lm_1A <- lmer(AgeAccelResiduals ~ Antler_std_log + Weight_log +
+                    Population +
+                    Antler_std_log:Weight_log + Antler_std_log:Population + 
+                    Weight_log:Population +
+                    (1|Cohort),  
                 data=data_antler_1A)
 
 

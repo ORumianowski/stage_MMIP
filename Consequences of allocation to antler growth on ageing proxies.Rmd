@@ -1,6 +1,5 @@
 ---
 title: "Consequences of allocation to antler growth on epigenetic age acceleration and telomere dynamics"
-author: "RUMIANOWSKI 0."
 date: "16/05/2022"
 output: 
   html_document:
@@ -36,12 +35,16 @@ library(cowplot)
 
 ```
 
+Odin Rumianowski$^1$$^2$ , Pierre Gloaguen$^1$, Jean-François Lemaître$^2$.
+
+$^1$ AgroParisTech, UMR MIA 518
+$^2$ Université	Lyon	1, CNRS,Laboratoire	de	Biométrie	et	Biologie	Evolutive	UMR5558
+
 ### INTRODUCTION
 
+Evolutionary theories of senescence, i.e. Antagonistic Pleiotropic Theory, Disposable Soma Theory, consider that aging emerges from the trade-off between reproduction in early life and in late life (see Lemaître et al. 2015 for a review). Therefore, because of sexual selection is associed with a diversity of cost (Garratt & Brooks, 2012), high allocation to precopulatory competition including production and maintenance of secondary sexual traits (SST) is expected to correlate with senescence intensity. In mammals, the strenght of sexual selection negatively influenced the onset of senescence, and males of  polygynous species having an earlier onset of senescence than in monogamous species (Clutton-Brock & Isvaran 2007; Tidière et al., 2015). In an intraspecific perpective, sexual selection  might explained partially between-sex difference in senescence pattern. Males with a high investment in precopulatory behavior suffer from a strengthened senescence. For example, in red deer, males which had larger harems experienced higher rates of senescence in both harem size and rut duration. (Lemaître et al., 2014). Studies on  the cost associated with the development of SST have revealed diverse physiological costs (Garratt & Brooks, 2012). However, long-term costs were only unveiled from demographic studies (Lemaître et al., 2018). Very few studies have brought information able to determine if these long-term costs are physiological and what are the underlying mechanisms. 
 
-Evolutionary theories of senescence, i.e. Antagonistic Pleiotropic Theory, Disposable Soma Theory, consider that aging emerges from the trade-off between reproduction in early life and in late life (see Lemaître et al. 2015 for a review). Therefore, because of sexual selection is associed with a diversity of cost (Garratt & Brooks, 2012), production and maintenance of secondary sexual traits (SST) is expected to correlate with senescence intensity. In mammals, the strenght of sexual selection negatively influenced the onset of senescence, and males of  polygynous species having an earlier onset of senescence than in monogamous species (Clutton-Brock & Isvaran 2007; Tidière et al., 2015). In an intraspecific perpective, sexual selection  might explained partially between-sex difference in senescence pattern. Males with a high investment in precopulatory behavior are expected to suffer a strengthened senescence. (Lemaître et al., 2014). Studies on  the cost associated with the development of SST have revealed diverse physiological costs (Garratt & Brooks, 2012). However, long-term costs were only unveiled from demographic studies (Lemaître et al., 2018). Very few studies have brought information able to determine if these long-term costs are physiological and what are the underlying mechanisms. 
-
-A first approach to fill this gap is to know if the intensity of production and maintenance of SST affects proxies of aging. For example, in the Australian painted dragon (Ctenophorus pictus), males that maintained a high level of head coloration suffered from a rapid rate of telomere loss  Giraudeau et al., 2016). Although still highly discussed what is the relation between telomere dynamics and individual life history, their shortening correlates with increased mortality risk and is usually perceived as a good biomarker for explaining reproductive costs (Sudyka, 2019).  Based on the level of cytosine methylation at some selected CpG sites, highly accurate epigenetic age estimators recently developed offer another promising proxy to study the process of biological aging in ecology and evolution (Parrott and Bertucci, 2019). By interpreting the degree of epigenetic-to-chronological age discordance as a result of individual age acceleration, it can be used to quantify physiological long-term cost (Gibson et al. 2019).
+A first approach to fill this gap is to know if the intensity of production and maintenance of SST affects proxies of aging. For example, in the Australian painted dragon (Ctenophorus pictus), males that maintained a high level of head coloration suffered from a rapid rate of telomere loss  (Giraudeau et al., 2016). Although the relation between telomere dynamics and individual life history is still highly discussed, telomere shortening correlates with increased mortality risk and is usually perceived as a good biomarker for explaining reproductive costs (Sudyka, 2019).  Based on the level of cytosine methylation at some selected CpG sites, highly accurate epigenetic age estimators recently developed offer another promising proxy to study the process of biological aging in ecology and evolution (Parrott and Bertucci, 2019). By interpreting the degree of epigenetic-to-chronological age discordance as a result of individual age acceleration, it can be used to quantify physiological long-term cost (Gibson et al. 2019).
 
 In the present study, we tested the relationship between the allocation to antler growth and these two proxies of aging i.e. telomere dynamics and epigenetic age acceleration in roe deer (Capreolus capreolus), using a dataset from two French population measured in 2016 and 2017. 
 
@@ -640,23 +643,340 @@ ggplot(cv_res, aes(x=method, y=performance, color=method)) +
 
 #### Statistical analysis
 
-All statistical analyses were performed in the R environment version 4.0.3. The selection of models was carried out using the function “dredge” of the package MuMin.  A p-value of 0.05 was considered significant. For all analysis, antler length,  weight, age, population origin and type of quality cohort were used as explicatories variatiables.
-To test the relationship between antler length and the EAA, a first model was applied on all adults (X individuals) and a second model only applied on the fawn For all the analysis concerning EAA, the initial full model has the index of EAA as response variable. Similarly, the relationship between antler length and the RTL was tested with a first model applied on all adults (X individuals) and a second model only applied on the fawn. The relationship between antler length and the telomere dynamics was tested thanks to the recaptures of X individuals in the second year making access to an annual RTL variation possible. 
+
+All statistical analyses were performed in the R environment version 4.0.3. The selection of linear mixed models based on the AICc was carried out using the function “dredge” of the package MuMin.  For all analysis, antler length,  weight and population origin were used as explanatory variables. The cohort i.e. the birth date was added as a random effect. One individual with a null antler length was removed from the analysis. The antler length and the weight were log-transformed. All possible variable interactions were added (see Additional Information). Individuals were partitioned into four groups (1, 2-4, 5-7 and +7 years) to form the variable of age class. 
+
+To test the relationship between antler length and the epigenetic age acceleration, a first model was applied on all individuals with no lacking data (88 individuals). The age class was added as an explanatory variable. A second model  was applied only on the fawn (27 individuals). 
+
+Similarly, the relationship between antler length and the RTL was tested with a first model applied on all adults (123 individuals) and a second model only applied on the fawn. The relationship between antler length and the telomere dynamics was tested thanks to the recaptures of 25 individuals in the second year making access to an annual RTL variation possible. 
 
 
-### RESULTS
+### RESULTS 
 
-#### Relationship between epigenetic age acceleration and allocation to antler growth
+For all analyses concerning the relationship between epigenetic age acceleration and allocation to antler growth, the constant model was selected. For all analyses concerning the relationship between RTL and allocation to antler growth, the selected model contained the population origin as explanatory variable, with a difference of 0.43 (95% CI [-0.79 ; -0.06], P  =  0.021) between the two population, revealing the dependence of RTL to the population for roe deer.For all analyses concerning the relationship between RTL annual variation and allocation to antler growth, the constant model was selected.
 
-For all analyses, the constant model was selected.
+```{r}
+date_day = function(date){
+  
+  if (format(date, format = "%Y")=="2016"){
+    startdate <- as.Date("01/12/2015","%d/%m/%Y")
+    new_date = difftime(date,startdate ,units="days") %>% 
+      as.integer()
+    return(new_date)
+  }
+  
+  if (format(date, format = "%Y")=="2017"){
+    startdate <- as.Date("01/12/2016","%d/%m/%Y")
+    new_date = difftime(date,startdate ,units="days")%>% 
+      as.integer()
+    return(new_date)
+  }
+}
 
-#### Relationship between RTL and allocation to antler growth
+data_antler = read_excel("data/Dataset_Telomere_Bois040522.xlsx", skip = 0, na = "NA") %>% 
+  rename(RTL = QC_RTL,
+         Population = population,
+         AntlerType = State,
+         Tbars = tbars,
+         Id = Id_JM,
+         Weight = Masse) %>% 
+  mutate(Id = as.factor(Id),
+         Year = as.factor(Year),
+         Cohort = as.factor(Cohorte),
+         Population = as.factor(Population),
+         Sex = as.factor(Sex),
+         AntlerType = as.factor(AntlerType),
+         AntlerLength = map2_dbl(.x = Antler_left, 
+                                 .y = Antler_right,
+                                 .f = function(x, y){
+                                   if(is.na(x))
+                                     return(y)
+                                   else if(is.na(y))
+                                     return(x)
+                                   else
+                                     return(max(x, y))
+                                 }
+         ),
+         Day = map_dbl(DateCapture, date_day),
+         AgeClass = cut(Age, breaks = c(0,1,4,8,25))) %>% 
+  dplyr::select(Id, Year, Day, Population, Weight,
+                Cohort, Sex, Age, Tbars, RTL, AntlerLength, AntlerType, AgeClass) 
 
-For all analyses, the selected model contained the population origin as explanatory variable, with a difference of 0.43 (95% CI [-0.79 ; -0.06], P  =  0.021) between the two population, revealing the dependance of RTL to the population for roe deer.
+dcohort = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
+  rename(Cohort_Quality_Pop = `CohortQuality/pop`) %>% 
+  mutate(Population = as.factor(Population),
+         Cohort = as.factor(Cohort), 
+         Cohort_Quality_Pop = as.numeric(Cohort_Quality_Pop)) %>% 
+  dplyr::select(Population, Cohort, Cohort_Quality_Pop) %>% 
+  unique()
 
-#### Relationship between RTL annual variation and allocation to antler growth
+data_antler = merge(data_antler, dcohort, by=c("Population", "Cohort") , all.x = TRUE)
 
-For all analyses, the constant model was selected.
+
+
+```
+
+
+```{r}
+# Problem with the sample
+data_antler = data_antler[-which(data_antler$Id=="M2301" & data_antler$Year=="2016") , ]
+
+# Unmeasured Antler Length
+data_antler = data_antler[-which(data_antler$Id=="M2317" & data_antler$Year=="2016") , ]
+
+
+data_antler_used_std =data_antler[,c("Id", 
+                                     "Year",
+                                     "Day",
+                                     "AntlerLength",
+                                     "AntlerType",
+                                     "AgeClass",
+                                     "Population")] %>% 
+  subset(AntlerLength > 1)
+                              
+
+
+# Fonctions de standardisation --------------------------------------------
+
+DATE_REF = 60
+
+std_antler = function(antler_length, date, pars, date_ref = DATE_REF) {
+  a = pars[1]
+  b = pars[2]
+  (antler_length - (a * date + b))  + a * date_ref + b
+}
+
+# Définition des fonctions de modélisation de la longueur des bois --------
+
+# fonction constante
+
+constante = function(pars, x) {
+  a = pars[1]
+  
+  a
+}
+
+# fonction linéaire
+
+lineaire = function(pars, x = 0) {
+  a = pars[1]
+  b = pars[2]
+  
+  a * x + b
+}
+
+
+
+NLL = function(pars,
+               ma_fonction,
+               y = Y,
+               x = X) {
+  # Values predicted by the model
+  sigma = pars[length(pars)]
+  parametres_moyenne = pars[-length(pars)]
+  Gpred = ma_fonction(parametres_moyenne, x)
+  # Negative log-likelihood 
+  -sum(dnorm(
+    x = y,
+    mean = Gpred,
+    sd = sigma,
+    log = TRUE
+  ))
+}
+
+get_AIC = function(initial_pars,
+                   ma_fonction,
+                   y = Y,
+                   x = X) {
+  neg_log_lik = optim(
+    par = initial_pars,
+    fn = function(p)
+      NLL(
+        p,
+        ma_fonction = ma_fonction,
+        y = Y,
+        x = X
+      ),
+    hessian = TRUE
+  )$value
+  2 * neg_log_lik + 2 * length(initial_pars)
+}
+
+
+n = 1000
+X = abs(rnorm(n))
+Y = lineaire(c(2, 5, 1), X) + rnorm(length(X), sd = .5)
+
+
+# CHIZE -------------------------------------------------------------------
+
+# Premiere classe ---------------------------------------------------------
+
+data_antler_2 = subset(data_antler_used_std, AntlerType == "BV" | is.na(AntlerType)) %>%
+  subset(AgeClass == "(0,1]" & Population == "C")
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    ))
+
+data_antler_1C = data_antler_2 %>% 
+  mutate(Antler_std = std_antler(log(AntlerLength), Day, optim_output$par) %>% 
+           exp()) %>% 
+  dplyr::select(Id, Population, Year, Antler_std)
+  
+
+
+# Classes supérieures -----------------------------------------------------
+
+
+data_antler_2 = subset(data_antler_used_std, AntlerType == "BV"| is.na(AntlerType)) %>%
+  subset(AgeClass != "(0,1]" & Population == "C") 
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+
+data_antler_NC = data_antler_2 %>% 
+  mutate(Antler_std = AntlerLength) %>% 
+  dplyr::select(Id, Population, Year, Antler_std)
+
+
+# Trois Fontaines ---------------------------------------------------------
+
+# Premiere classe ---------------------------------------------------------
+
+data_antler_2 = subset(data_antler_used_std,AntlerType == "BV" | is.na(AntlerType)) %>%
+  subset(AgeClass == "(0,1]" & Population == "TF") 
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+
+data_antler_1TF = data_antler_2 %>% 
+  mutate(Antler_std = std_antler(log(AntlerLength), Day, optim_output$par) %>% 
+           exp()) %>% 
+  dplyr::select(Id, Population, Year, Antler_std)
+
+
+# Classes supérieures -----------------------------------------------------
+
+
+data_antler_2 = subset(data_antler_used_std, AntlerType == "BV" | is.na(AntlerType)) %>%
+  subset(AgeClass != "(0,1]" & Population == "TF") 
+
+X = data_antler_2$Day
+Y = data_antler_2$AntlerLength %>%
+  log()
+optim_output = optim(
+  par = c(1, 0, 1),
+  fn = function(p)
+    NLL(
+      p,
+      ma_fonction = lineaire,
+      y = Y,
+      x = X
+    )
+)
+
+data_antler_NTF = data_antler_2 %>% 
+  mutate(Antler_std = std_antler(log(AntlerLength), Day, optim_output$par) %>% 
+           exp()) %>% 
+  dplyr::select(Id, Population, Year, Antler_std)
+
+
+
+# merge -------------------------------------------------------------------
+
+data_antler_std = rbind(data_antler_1C,
+                        data_antler_NC,
+                        data_antler_1TF,
+                        data_antler_NTF)
+
+data_antler_complet <-  merge(data_antler_used_std, data_antler_std, by=c("Id", "Population","Year"), all.x = TRUE)
+
+
+# Traitement des cas Antler_Type==BD  & AntlerLength <= 1 --------------------
+
+for (k in 1:nrow(data_antler_complet)){
+  if (!is.na(data_antler_complet[k, "AntlerType"])){
+    if (data_antler_complet[k, "AntlerType"] == "BD"){ 
+      data_antler_complet[k, "Antler_std"] = data_antler_complet[k, "AntlerLength"]
+    }
+  }
+  if (data_antler_complet[k, "AntlerLength"] <= 1){
+    data_antler_complet[k, "Antler_std"] = data_antler_complet[k, "AntlerLength"]
+  }
+}
+
+data_antler_complet <- data_antler_complet[,c("Id", "Year", "Population", "Antler_std")]
+data_antler <-  merge(data_antler, data_antler_complet, by=c("Id", "Year", "Population"), all.x = TRUE)
+
+
+rm()
+rm(k)
+rm(n)
+rm(X)
+rm(Y)
+rm(DATE_REF)
+rm(optim_output)
+rm(constante)
+rm(date_day)
+rm(get_AIC)
+rm(lineaire)
+rm(NLL)
+rm(std_antler)
+rm(data_antler_1C)
+rm(data_antler_NC)
+rm(data_antler_1TF)
+rm(data_antler_NTF)
+rm(data_antler_std)
+rm(data_antler_complet)
+
+rm(data_antler_2)
+rm(data_antler_used_std)
+
+
+
+
+```
+
+
+
+```{r, fig.height=4, fig.width=5}
+data_antler= mutate(data_antler,
+                    RTL = scale(RTL))
+
+ggplot(data_antler,
+       aes(x = Population,
+           y = RTL,
+           color=Population)) +
+  geom_boxplot()+ 
+  geom_jitter(shape=16, position=position_jitter(0.05))+ 
+  ggtitle("Relative Telomere Length  \n in relation to the Population")
+
+```
 
 ### DISCUSSION
 
@@ -677,5 +997,12 @@ Parrott, B.B., Bertucci, E.M., 2019. Epigenetic Aging Clocks in Ecology and Evol
 Sudyka, J., 2019. Does Reproduction Shorten Telomeres? Towards Integrating Individual Quality with Life‐History Strategies in Telomere Biology. BioEssays 41, 1900095. https://doi.org/10.1002/bies.201900095
 
 Tidière, M., Gaillard, J.-M., Müller, D.W.H., Lackey, L.B., Gimenez, O., Clauss, M., Lemaître, J.-F., 2015. Does sexual selection shape sex differences in longevity and senescence patterns across vertebrates? A review and new insights from captive ruminants: SEXUAL SELECTION AND SENESCENCE. Evolution 69, 3123–3140. https://doi.org/10.1111/evo.12801
+
+
+### AUTHORS’ CONTRIBUTIONS 
+
+J.F.L. conceived	the	ideas	 and	J.F.L. and P.G. designed	 methodology.	 O.R.	 analysed	 the	 data. O.R. wrote the manuscript, J.F.L.	 wrote	 the paragraphs "Study populations", "methylation data" and part of "How to measure allocation to antler growth".
+
+
 
 
