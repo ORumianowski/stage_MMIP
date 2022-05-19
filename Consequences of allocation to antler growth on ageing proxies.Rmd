@@ -9,7 +9,8 @@ output:
 encoding: UTF-8
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,
+                      cache = TRUE)
 ```
 
 
@@ -163,7 +164,7 @@ Model	selection	was	based	on the Akaike	Information	Criterion	(AIC).
 ECRIT CE QU'EST l'AIC et décrit en quelques mots quel est son rôle (compromis pouvoir explicatif/parcimonie)
 !!!!!!!!!!!!!!!!!!!!!!!!!
 
-!!!! LE  PARAGRAPHE SUIVANT DEVRAIT ETRE DANS LA PARTIE RESULTATS A MON AVIS, TU AS DECRIT LA METHODE DE STANDARDISATION, TU DECRIS DANS LA PARTIE RESULTATS CE QUE CA A DONNE !!!!!!!!!!!!!!!!
+!!!! LE  PARAGRAPHE SUIVANT DEVRAIT ETRE DANS LA PARTIE RESULTATS A MON AVIS, TU AS DECRIT LA METHODE DE STANDARDISATION, TU DECRIS DANS LA PARTIE RESULTATS CE QUE CA A DONNE. DE PLUS, QUAND TU METS UN GRAPHE TU LE DECRIS BIEN. 1) CE QU'ON REGARDE (DESCRIPTION DES AXES ET DES LEGENDES) 2) CE QUON CONSTATE DIFFERENTS MODELES 3) CE QU'ON CONCLUT.  !!!!!!!!!!!!!!!!
 
 
 The models are tested on the data by discriminating according to the population of origin and whether the measurement was performed on a first year or not *i.e.* partitioning the dataset into four.
@@ -505,19 +506,28 @@ Following Horvath (2013), we computed the epigenetic acceleration as the residua
 !!!! ICI CEST TYPIQUEMENT UNE PHRASE VAGUE QUIL FAUT FORMALISER JE TE PROPOSE UN TRUC DE CE GENRE!!!
 
 Formally, we suppose that there exists a $f$ such that:
-$$\text{Methylated Age} = f(Age) + E,$$
-where $f$ is a prediction function (potentially emerging from a physical model), and $E$ is a remainder that we call *residual*.
+$$\text{Methylated Age} = f(Age, \theta) + E,$$
+where $f$ is a prediction function (potentially emerging from a physical model) depending on the age and on some unknown set of parameters $\theta$ that has to be estimated, and $E$ is a remainder that we call *residual*.
 
-Four functions were proposed and we used a tenfold cross validation to compare them. The model with a simple logarithmic component was selected. The different functions	were: 
+Four functions were proposed, depending on at most 3 unknown parameters, coefficients $\alpha$ and $\beta$ and the adult age, denoted $t_a$. !!! EXPLIQUE CE QU'EST LE HORVATH, POUR QUI C'ETAIT APPLIQUE !!!
 \begin{align*}
-f_1(Age) &= \alpha + \beta \times Age \\
-f_2(Age) &= \alpha \times \log(Age + 1) + \beta \times Age\\
-f_3(Age) &= \alpha \times \log(Age+1), Age < adult.age
-f_3(Age) &= \beta \times \frac{ Age-adult.age}{adult.age + 1} + \alpha \times log(adult.age+1) , Age>adult.age
-f_4(Age) &= \alpha \times Age + \beta \times Age^2
+f_1(Age) &= \alpha + \beta \times Age & \text{ Linear} \\
+f_2(Age) &= \alpha \times \log(Age + 1) + \beta \times Age & \text{ Logarithmic}\\
+f_3(Age) &= \left\lbrace 
+\begin{array}{lr}
+\beta \times \frac{Age-t_a}{t_a + 1} & \text{ if } Age \leq t_a\\
+\alpha \times \log(t_a + 1) & \text{ if } Age > t_a
+\end{array}
+\right. & \text{ Horvath} \\
+f_4(Age) &= \alpha \times Age + \beta \times Age^2 & \text{ Quadratic}
 \end{align*}
 
+and we used a tenfold cross validation to compare them. !!!! C'EST QUOI LA CROSS VALIDATION? EXPLIQUE!!!
 
+
+
+!!! PAREIL, CES GRAPHIQUES DEVRAIENT ALLER DANS LA PARTIE RESULTATS. SI TU AS CHOISI DE FAIRE LE TEXTE EN FRANCAIS. ATTENTION DANS LA LEGENDE A METTRE LINEAR, METS DES MAJUSCULES AUX AXES, ET HARMONISE LOG (A GAUCHE) ET LOGARITHMIC (A DROITE). dE MEME DECRIT LES FIGURES !!!
+The model with a simple logarithmic component was selected. The different functions	were: 
 
 
 
@@ -696,8 +706,20 @@ ggplot(cv_res, aes(x=method, y=performance, color=method)) +
 
 ## Statistical analysis
 
+!!!! LA CA MANQUE CLAIREMENT DE CONTEXTE. TU VEUX MAINTENANT ANALYSER LES RESIDUS DU MODELE CHOISIT DANS LA SECTION PRECEDENTE. TU VEUX VOIR SI CES RESIDUS SONT STRUCTURES PAR LES VARIABLES EXPLICATIVES, DONC TU POSES UN MODELE LINEAIRE SUR LES RESIDUS. CE N'EST PAS TRIVIAL DONC EXPLIQUE LE, ET FORMALISE LE. ENTRAINE TOI A FORMALISER UN MODELE LINEAIRE (ICI LA NOTATION MATRICIELLE TE PERMETTRAIT DETRE CONCIS). 
+DONC DANS L'ORDRE: 
 
-All statistical analyses were performed in the R environment version 4.0.3. The selection of linear mixed models based on the AICc was carried out using the function “dredge” of the package MuMin.  For all analysis, antler length,  weight and population origin were used as explanatory variables. The cohort i.e. the birth date was added as a random effect. One individual with a null antler length was removed from the analysis. The antler length and the weight were log-transformed. All possible variable interactions were added (see Additional Information). Individuals were partitioned into four groups (1, 2-4, 5-7 and +7 years) to form the variable of age class. 
+- I) DESCRIPTION DU PROBLEME: VOIR SI UNE OU DES VARIABLES EXPLICATIVES STRUCTURENT LES RESIDUS, 
+- II) PROPOSITION DE REPONSE: ESSAYER D'EXPLIQUER LES RESIDUS PAR LES VARIABLES EXPLICATIVES DANS UN MODELE LINEAIRE 
+- III) DESCRIPTION DES VARIABLES EXPLICATIVES EMPLOYEES 
+- IV) CHOIX DE MODELE PAR AICc (EXPLIQUE CE QUE C'EST) 
+- V) ON L'A FAIT  EN R AVEC TELLE FONCTION DE TEL PACKAGE (EN VRAI, JE NE PENSE PAS QUE CA INTERESSE QUI QUE CE SOIT, MAIS POURQUOI PAS) 
+
+ENSUITE, TU PARLES ICI EN 2 LIGNES DE LA RELATION ENTRE ANTLER LENGTH ET RTL. SOIT TU EN PARLES PAS DU TOUT, SOIT TU DEVELOPPES !!!
+
+All statistical analyses were performed in the R environment version 4.0.3. The selection of linear mixed models based on the AICc !!! CEST QUOI L'AICc ? QUAND TU EMPLOIES UN TERME TECHNIQUE, DEFINIT LE!!! was carried out using the function `dredge` of the package `MuMin`.
+For all analysis, antler length,  weight and population origin were used as explanatory variables. 
+The cohort i.e. the birth date was added as a random effect. One individual with a null antler length was removed from the analysis. The antler length and the weight were log-transformed. All possible variable interactions were added (see Additional Information). Individuals were partitioned into four groups (1, 2-4, 5-7 and +7 years) to form the variable of age class. 
 
 To test the relationship between antler length and the epigenetic age acceleration, a first model was applied on all individuals with no lacking data (88 individuals). The age class was added as an explanatory variable. A second model  was applied only on the fawn (27 individuals). 
 
@@ -707,6 +729,8 @@ Similarly, the relationship between antler length and the RTL was tested with a 
 # RESULTS 
 
 For all analyses concerning the relationship between epigenetic age acceleration and allocation to antler growth, the constant model was selected. For all analyses concerning the relationship between RTL and allocation to antler growth, the selected model contained the population origin as explanatory variable, with a difference of 0.43 (95% CI [-0.79 ; -0.06], P  =  0.021) between the two population, revealing the dependence of RTL to the population for roe deer.For all analyses concerning the relationship between RTL annual variation and allocation to antler growth, the constant model was selected.
+
+!!! FAIS REFERENCE A LA FIGURE!!!
 
 ```{r}
 date_day = function(date){
