@@ -90,7 +90,7 @@ Then,	males	generally	 develop	a	four-point	(in	yearlings) 	or	five-/six-point	(
 To obtain a measure of antler length independent from the date of capture, we used a standardization method used by Lemaître (2018). 
 We analysed the	relationship between antler length and	the	Julian date	of capture	(with	1	December	as day	0). We fitted	different	functions	to	assess	reliably	the	shape	of the relationship between	antler length	(log-transformed) and date	of	capture :	constant,	linear,	a	threshold	 function	 with	 one	 slope	 (i.e.	 antler length	 increasing linearly with	date of	capture until reaching a plateau at a	given	date)	and a	threshold	 function with two slopes (i.e. antler length increasing	linearly	with	date	of	capture	until	a	given	date and then	increasing further, but	with	a	different	slope).	Model	selection	was	based	on the Akaike	Information	Criterion	(AIC). The AIC criterion deals with the trade-off between the goodness of fit and the simplicity of the model: ${\displaystyle \mathrm {AIC} \,=\,2k-2\ln(L)}$, with $k$ the he number of estimated parameters and $L$ the maximum value of the likelihood function.
 
-The models are tested on the data by discriminating according to the population of origin and whether the measurement was performed on a first year or not *i.e.* partitioning the dataset into four. Individuals with dry wood have been considered as fully grown, the raw measurement will be used directly as a standard measurement and this individuals were removed from the process of standardization.In order to retain as much data as possible, measurements of antlers where the antler condition is unknown were included in the standardization process.
+The models are tested on the data by discriminating according to the population of origin and whether the measurement was performed on a first year or not *i.e.* partitioning the dataset into four. Individuals with dry wood have been considered as fully grown, the raw measurement will be used directly as a standard measurement and these individuals were removed from the process of standardization.In order to retain as much data as possible, measurements of antlers where the antler condition is unknown were included in the standardization process.
 
 ## Analysis of epigenetic age deviation
 
@@ -123,7 +123,7 @@ The three first functions were designed for the study. The fourth function (call
 
 Linear mixed models(LMM) was used to test if there is an association between epigenetic age deviation and antler growth, with th possibility to add covariates in order to control confounding effects. Moreover, random effect able to control the violation of the hypothesis of independance of two observations from a same category. Formally, the general model is : $$Y= X\theta + ZU + E$$ with $Y$ the response variable, $X\theta$ the fixed effects, $ZU$ the random effect and  $E$ the residuals.
 
-The variance of each observation is: $$V(Y) = V(ZU) + V(E) = \gamma^2 + \sigma^2 $$
+The variance of each observation is: $$V(Y) = V(ZU) + V(E) = \gamma^2 + \sigma^2$$
 
 The model to dependante observations: 
 
@@ -144,7 +144,7 @@ All statistical analyses were performed in the R environment version 4.0.3. The 
 
 For all analysis, antler length, weight and population origin were used as explanatory variables. The antler length and the weight were log-transformed. Individuals were partitioned into four groups (1, 2-4, 5-7 and +7 years) to form the variable of age class.The cohort i.e. the birth date was added as a random effect. One individual with a null antler length was removed from the analysis.  All possible variable interactions were added (see Additional Information). 
 
-As an example, the common part of these models is: $$ Y_{ik}= \mu + \alpha \times AntlerLength_{ik} + \beta \times Weight_{ik} + U_i + E_{k} \  $$ with \alpha the parameter associated with the effect of the antler length, \beta the parameter associated with the effect of the weight, $U_i$ the random effect association to the cohort.
+As an example, the common part of these models is: $$ Y_{ik}= \mu + \alpha \times AntlerLength_{ik} + \beta \times Weight_{ik} + U_i + E_{k} \  $$ with $\alpha$ the parameter associated with the effect of the antler length, $\beta$ the parameter associated with the effect of the weight, $U_i$ the random effect association to the cohort.
 
 To test the relationship between antler length and the epigenetic age deviation, a first model was applied on all individuals with no lacking data (88 individuals). The age class was added as an explanatory variable. A second model  was applied only on the fawn (27 individuals). 
  
@@ -1058,7 +1058,7 @@ Male allocation to precopulatory sexual competition is assumed to explain male b
 
 Epigenetic age deviation was not explained by any explanatory variables invoked in the study. For humans,  epigenetic clocks demonstrated its ability to predict mortality (Liu et al., 2020) and epigenetic age deviation proved to be sensitive to lifestyle factors including smoking behavior (Gibson et al., 2019). The absence of a relationship between allocation to antler growth and epigenetic age deviation suggests that production of antler does not constitute a physiological cost in terms of senescence. It is still possible that the small size of the dataset was not sufficient to detect the associated cost. Moreover, the few recatures (n=8) suggested that the study of annual variation of epigenetic age deviation might be a more sensitive way to measure the effect of antler growth allocation on epigenetic age deviation. Data with more recaptures in order to quantify annual variation of epigenetic age deviation have to be carried out.
 
-Surprisingly, our results suggest that RTL is not associated with age in roe deer. For a majority of individuals, telomere length increased with age (60%, n=25). While measurement error could contribute to such an apparent elongation of telomere length, increasing RTL might result from a possible expression of telomerase. Still, our knowledge on telomerase is limited and unclear (no expression in the fibroblast of Munjac species; expression in the antler of Sika deer). A significant difference of RTL was found between the two populations, individuals from Trois-Fontaines Forest having longer RTL. This result might be explained by the higher habitat quality of the forest. 
+Surprisingly, our results suggest that RTL is not associated with age in roe deer. For a majority of individuals, telomere length increased with age (60%, n=25). While measurement error could contribute to such an apparent elongation of telomere length, increasing RTL might result from a possible expression of telomerase. Still, our knowledge on telomerase is limited and unclear (no expression in the fibroblast of Munjac species; expression in the antler of Sika deer). A significant difference of RTL was found between the two populations, individuals from Trois-Fontaines Forest having longer RTL. This result might be explained by the higher habitat quality of the forest (Salmón et al., 2016). 
 
 
 ### REFERENCES
@@ -1098,6 +1098,8 @@ Pettorelli, N., Gaillard, J.-M., Mysterud, A., Duncan, P., Chr. Stenseth, N., De
 Parrott, B.B., Bertucci, E.M., 2019. Epigenetic Aging Clocks in Ecology and Evolution. Trends in Ecology & Evolution 34, 767–770. https://doi.org/10.1016/j.tree.2019.06.008
 
 Seeker, L.A., Holland, R., Underwood, S., Fairlie, J., Psifidi, A., Ilska, J.J., Bagnall, A., Whitelaw, B., Coffey, M., Banos, G., 2016. Method specific calibration corrects for DNA extraction method effects on relative telomere length measurements by quantitative PCR. PLoS One 11, e0164046.
+
+Salmón, P., Nilsson, J.F., Nord, A., Bensch, S., Isaksson, C., 2016. Urban environment shortens telomere length in nestling great tits, Parus major. Biol. Lett. 12, 20160155. https://doi.org/10.1098/rsbl.2016.0155
 
 Sempéré,	 A.	J.,	&	Boissin,	 J.	(1981).	 Relationship	 between	 antler	 development	and	 plasma	 androgen	 concentrations	 in	adult	 roe	deer.	 Journal of Reproduction and Fertility,	 62,	49–53.	 https://doi.org/10.1530/ jrf.0.0620049
 
