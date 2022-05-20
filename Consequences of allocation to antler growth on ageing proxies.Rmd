@@ -48,7 +48,7 @@ J.F.L. conceived	the	ideas	 and	J.F.L. and P.G. designed	 methodology.	 O.R.	 an
 
 # INTRODUCTION
 
-Evolutionary theories of senescence, *i.e.* Antagonistic Pleiotropic Theory or Disposable Soma Theory, consider that aging emerges from the trade-off between reproduction in early life and in late life (see Lemaître et al. 2015 for a review). 
+Evolutionary theories of senescence, *i.e.* Antagonistic Pleiotropic Theory and Disposable Soma Theory, consider that aging emerges from the trade-off between reproduction in early life and in late life (see Lemaître et al. 2015 for a review). 
 Therefore, because sexual selection is associated with a diversity of cost (Garratt & Brooks, 2012), high allocation to precopulatory competition, including production and maintenance of secondary sexual traits (SST), is expected to correlate with senescence intensity. 
 In mammals, the strength of sexual selection negatively influences the onset of senescence, and males of  polygynous species have an earlier onset of senescence than in monogamous species (Clutton-Brock & Isvaran 2007; Tidière et al., 2015). 
 From an intraspecific perspective, sexual selection  might explained partially between-sex difference in senescence pattern. 
@@ -158,7 +158,7 @@ Similarly, the relationship between antler length and the RTL was tested. The re
 
 ## Standardisation of antler length
 
-The AIC and graph analysis reveal that the linear model is the best fit, except for the group of adults from Chizé where the best model corresponds to the constant function. 
+The AIC and graph analysis revealed that the linear model is the best fit, except for the group of adults from Chizé where the best model corresponds to the constant function. 
 
 ```{r}
 data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
