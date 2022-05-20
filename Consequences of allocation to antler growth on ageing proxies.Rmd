@@ -158,7 +158,7 @@ Similarly, the relationship between antler length and the RTL was tested. The re
 
 ## Standardisation of antler length
 
-The AIC and graph analysis revealed that the linear model is the best fit, except for the group of adults from Chizé where the best model corresponds to the constant function. 
+The AIC and graph analysis revealed that the linear model is the best fit (Figure 1), except for the group of adults from Chizé  (Figure 1.2) where the best model corresponds to the constant function. 
 
 ```{r}
 data_antler = read_excel("data/Dataset_ODIN_160422.xlsx", skip = 0, na = "NA") %>% 
@@ -377,7 +377,7 @@ ggplot(data_antler_2,
   geom_abline(slope = optim_output$par[1],
               intercept = optim_output$par[2],
               colour = "red")+
-  labs( title = "Chizé - 1A",
+  labs( title = "Fig. 1.1: Chizé - 1A",
         x= "Julian Capture Date",
         y= "Antler Length (log)")
 
@@ -423,7 +423,7 @@ ggplot(data_antler_2,
   geom_abline(slope = 0,
               intercept = optim_output$par[1],
               colour = "red")  +
-  labs( title = "Chizé - +1A",
+  labs( title = "Fig. 1.2:Chizé - +1A",
         x= "Julian Capture Date",
         y= "Antler Length (log)")
 
@@ -465,7 +465,7 @@ ggplot(data_antler_2,
   geom_abline(slope = optim_output$par[1],
               intercept = optim_output$par[2],
               colour = "red")+
-  labs( title = "Trois-Fontaines - 1A",
+  labs( title = "Fig. 1.3:Trois-Fontaines - 1A",
         x= "Julian Capture Date",
         y= "Antler Length (log)")
 
@@ -509,7 +509,7 @@ ggplot(data_antler_2,
   geom_abline(slope = optim_output$par[1],
               intercept = optim_output$par[2],
               colour = "red")+
-  labs( title = "Trois-Fontaines - +1A",
+  labs( title = "Fig. 1.4: Trois-Fontaines - +1A",
         x= "Julian Capture Date",
         y= "Antler Length (log)")
 
@@ -549,7 +549,7 @@ data_antler <-  merge(data_antler, data_antler_complet, by=c("Pop_Id", "Year"), 
 
 ## Measurements of Epigenetic Age Deviation
 
-The cross-validation revealed that the second function called Logarithmic shows the best performance (Figure!!!). Surprisingly, the Horvath function presents an intermediate performance. 
+The cross-validation revealed that the second function called Logarithmic shows the best performance (Figure 2 & 3). Surprisingly, the Horvath function presents an intermediate performance. 
 
 
 ```{r}
@@ -715,19 +715,19 @@ ggplot(data_antler) +
                 fun = predicteur_Horvath, 
                 args = list(parametre  = optimization_function(predicteur_Horvath, 
                                                                nb_par = 3))) +
-  ggtitle("Tested models of DNAmAge \n  in relation to the Age")
+  ggtitle("Figure 2: \n Tested models of DNAmAge \n  in relation to the Age")
 
 
 ggplot(cv_res, aes(x=method, y=performance, color=method)) + 
   geom_boxplot()+ 
   geom_jitter(shape=16, position=position_jitter(0.01))+ 
-  ggtitle("Cross-validation \n evaluating models of DNAmAge")
+  ggtitle("Figure 3: \n Cross-validation \n evaluating models of DNAmAge")
 ```
 
 
 ## Results of the linear mixed models
 
-For all analyses concerning the relationship between epigenetic age deviation and allocation to antler growth, the constant model was selected. For all analyses concerning the relationship between RTL and allocation to antler growth, the selected model contained the population origin as explanatory variable, with a difference of 0.43 (95% CI [-0.79 ; -0.06], P  =  0.021) between the two population, revealing the dependence of RTL to the population for roe deer (Figure !!!). For all analyses concerning the relationship between RTL annual variation and allocation to antler growth, the constant model was selected.
+For all analyses concerning the relationship between epigenetic age deviation and allocation to antler growth, the constant model was selected. For all analyses concerning the relationship between RTL and allocation to antler growth, the selected model contained the population origin as explanatory variable, with a difference of -0.43 (95% CI [-0.79 ; -0.06], P  =  0.021) between the two population, revealing the dependence of RTL to the population for roe deer (Figure 4). For all analyses concerning the relationship between RTL annual variation and allocation to antler growth, the constant model was selected.
 
 ```{r}
 date_day = function(date){
@@ -1048,7 +1048,7 @@ ggplot(data_antler,
            color=Population)) +
   geom_boxplot()+ 
   geom_jitter(shape=16, position=position_jitter(0.05))+ 
-  ggtitle("Relative Telomere Length  \n in relation to the Population")
+  ggtitle("Figure 4: Relative Telomere Length  \n in relation to the Population")
 
 ```
 
