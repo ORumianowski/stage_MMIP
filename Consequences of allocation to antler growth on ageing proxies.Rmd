@@ -116,12 +116,13 @@ f_4(Age) &= \left\lbrace
 \right. & \text{ Horvath} \\
 \end{align*}
 
-The three first functions were designed for the study. The fourth function (called “Horvath” hereafter) was used to developped a epigenetic age estimator for humans by Horvath (2013). This features of the function is that it is a continuous, monotonically increasing function which can be inverted, has a logarithmic dependence on age until adulthood and has a linear dependence on age after adulthood. To compare the four models, We used a tenfold cross validation. This method  consists of a resampling that uses different portions of the data to test and train a model using, on different iterations. 
+The three first functions were designed for the study. The fourth function (called “Horvath” hereafter) was used to developped a epigenetic age estimator for humans by Horvath (2013). This features of the function is that it is a continuous, monotonically increasing function which can be inverted, has a logarithmic dependence on age until adulthood and has a linear dependence on age after adulthood. To compare the four models, We used a tenfold cross validation. This method  consists of a resampling that uses different portions of the data to test and train a model. The metrics used here was the mean square error.  
 
 ### Is epigenetic age deviation explained by allocation to antler growth? 
+
 #### Application of linear mixed models
 
-Linear mixed models(LMM) was used to test if there is an association between epigenetic age deviation and antler growth, with th possibility to add covariates in order to control confounding effects. Moreover, random effect able to control the violation of the hypothesis of independance of two observations from a same category. Formally, the general model is : $$Y= X\theta + ZU + E$$ with $Y$ the response variable, $X\theta$ the fixed effects, $ZU$ the random effect and  $E$ the residuals.
+The chosen link function  called "Logarithmic" provides the best prediction of epigenetic age from chronological age. Determining whether the residuals from this regression can be explained by biological variables would show that there is a biological signal contained in these residuals that is not explained by age. Linear mixed models(LMM) was used to test if there is an association between epigenetic age deviation $i.e.$ the residuals of the previous regression and antler growth, with the possibility to add covariates in order to control confounding effects. Moreover, random effect able to control the violation of the hypothesis of independance of two observations from a same category. Formally, the general model is : $$Y= X\theta + ZU + E$$ with $Y$ the response variable, $X\theta$ the fixed effects, $ZU$ the random effect and  $E$ the residuals.
 
 The variance of each observation is: $$V(Y) = V(ZU) + V(E) = \gamma^2 + \sigma^2$$
 
@@ -1031,12 +1032,7 @@ rm(data_antler_complet)
 rm(data_antler_2)
 rm(data_antler_used_std)
 
-
-
-
 ```
-
-
 
 ```{r, fig.height=4, fig.width=5}
 data_antler= mutate(data_antler,
@@ -1054,11 +1050,11 @@ ggplot(data_antler,
 
 # DISCUSSION
 
-Male allocation to precopulatory sexual competition is assumed to explain male biais in intensity of senescence of mammals .In roe deer, demographic analysis suggested that high allocation to antler growth is associated with a lower probability to reach the age of 6. Nevertheless, our results have not revealed any significant association between allocation to antler growth and both proxies of aging i.e. epigenetic age acceleration and annual RTL variation. Therefore, we found no evidence that allocation to antler growth constitutes a physiological cost for roe deer. 
+Male allocation to precopulatory sexual competition is assumed to explain male biais in intensity of senescence of mammals. In roe deer, demographic analysis suggested that high allocation to antler growth is associated with a lower probability to reach the age of 6. Nevertheless, our results have not revealed any significant association between allocation to antler growth and both proxies of aging i.e. epigenetic age acceleration and annual RTL variation. Therefore, we found no evidence that allocation to antler growth constitutes a physiological cost for roe deer. 
 
-Epigenetic age deviation was not explained by any explanatory variables invoked in the study. For humans,  epigenetic clocks demonstrated its ability to predict mortality (Liu et al., 2020) and epigenetic age deviation proved to be sensitive to lifestyle factors including smoking behavior (Gibson et al., 2019). The absence of a relationship between allocation to antler growth and epigenetic age deviation suggests that production of antler does not constitute a physiological cost in terms of senescence. It is still possible that the small size of the dataset was not sufficient to detect the associated cost. Moreover, the few recatures (n=8) suggested that the study of annual variation of epigenetic age deviation might be a more sensitive way to measure the effect of antler growth allocation on epigenetic age deviation. Data with more recaptures in order to quantify annual variation of epigenetic age deviation have to be carried out.
+Epigenetic age deviation was not explained by any explanatory variables invoked in the study. For humans,  epigenetic clocks demonstrated its ability to predict mortality (Liu et al., 2020) and epigenetic age deviation proved to be sensitive to lifestyle factors including smoking behavior (Gibson et al., 2019). The absence of a relationship between allocation to antler growth and epigenetic age deviation suggests that production of antler does not constitute a physiological cost in terms of senescence. Nevertheless, the lack of association may be due to the method used in this study. The deviation index of epigenetic age is the residual of the regression of epigenetic age on chronological age. The link function chosen called "Logarithmic" provides the best prediction. Yet, it is not known if this logarithmic component has a biological explanation. A specific study is needed to explain the good prediction performance. Besides, it is still possible that the small size of the dataset was not sufficient to detect the associated cost. Moreover, the few recatures ($n=8$) suggested that the study of annual variation of epigenetic age deviation might be a more sensitive way to measure the effect of antler growth allocation on epigenetic age deviation. Data with more recaptures in order to quantify annual variation of epigenetic age deviation have to be carried out.
 
-Surprisingly, our results suggest that RTL is not associated with age in roe deer. For a majority of individuals, telomere length increased with age (60%, n=25). While measurement error could contribute to such an apparent elongation of telomere length, increasing RTL might result from a possible expression of telomerase. Still, our knowledge on telomerase is limited and unclear (no expression in the fibroblast of Munjac species; expression in the antler of Sika deer). A significant difference of RTL was found between the two populations, individuals from Trois-Fontaines Forest having longer RTL. This result might be explained by the higher habitat quality of the forest (Salmón et al., 2016). 
+Surprisingly, our results suggest that RTL is not associated with age in roe deer. For a majority of individuals, telomere length increased with age (60%, $n=25$). While measurement error could contribute to such an apparent elongation of telomere length, increasing RTL might result from a possible expression of telomerase. Still, our knowledge on telomerase is limited and unclear (no expression in the fibroblast of Munjac species; expression in the antler of Sika deer). A significant difference of RTL was found between the two populations, individuals from Trois-Fontaines Forest having longer RTL. This result might be explained by the higher habitat quality of the forest (Salmón et al., 2016). 
 
 
 ### REFERENCES
